@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CraftLog — Calculadora Logística</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+      <div class="brand-icon" aria-hidden="true">
+        <!-- Pixel diamond icon 4x4 -->
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel light"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel light"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel light"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel darker"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel darker"></div>
+        <div class="brand-icon-pixel dark"></div>
+      </div>
+      <div>
+        <div class="brand-text">CRAFTLOG</div>
+        <div class="brand-sub">v1.0</div>
+      </div>
+    </a>
+
+    <div class="nav-links">
+      <a href="#que-hace" class="btn btn-ghost">¿Qué es?</a>
+      <a href="#features" class="btn btn-ghost">Funciones</a>
+      <a href="login.html" class="btn btn-secondary">Entrar</a>
+      <a href="register.html" class="btn btn-primary">Crear cuenta</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Motor de cálculo logístico</div>
+      <h1 class="hero-title">
+        Planifica tu
+        <br>próxima build
+        <br><span class="accent">sin calcular nada.</span>
+      </h1>
+      <p class="hero-desc">
+        Ingresa los bloques que quieres construir. CraftLog desglosa
+        todas las materias primas, calcula tiempos de horneado y descuenta
+        lo que ya tienes en tu inventario — automáticamente.
+      </p>
+      <div class="hero-ctas">
+        <a href="register.html" class="btn btn-primary btn-lg">Empezar gratis</a>
+        <a href="#que-hace" class="btn btn-secondary btn-lg">Ver demo</a>
+      </div>
+    </div>
+
+    <!-- Preview visual -->
+    <div class="hero-right" aria-hidden="true">
+      <div style="width:100%; max-width:460px;">
+        <!-- Fake project card preview -->
+        <div class="card card-accent animate-in" style="margin-bottom:12px; animation-delay:0.1s;">
+          <div class="flex items-center justify-between mb-md">
+            <div class="flex items-center gap-sm">
+              <div class="pixel-block block-stone" style="width:28px;height:28px;"></div>
+              <div>
+                <div style="font-family:var(--font-pixel);font-size:8px;color:var(--text-primary)">Castillo de Piedra</div>
+                <div class="text-sm text-muted">Actualizado hace 2 min</div>
+              </div>
+            </div>
+            <span class="badge badge-diamond">Activo</span>
+          </div>
+          <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+            <div class="stat-card">
+              <div class="stat-label">Bloques</div>
+              <div class="stat-value accent" style="font-size:20px">18</div>
+              <div class="text-xs text-muted">stacks</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Tiempo horno</div>
+              <div class="stat-value gold" style="font-size:20px">4.2</div>
+              <div class="text-xs text-muted">horas</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Materiales</div>
+              <div class="stat-value green" style="font-size:20px">12</div>
+              <div class="text-xs text-muted">tipos</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fake material list -->
+        <div class="card animate-in" style="animation-delay:0.2s;">
+          <div class="flex items-center justify-between mb-md">
+            <span style="font-family:var(--font-pixel);font-size:8px;color:var(--text-secondary)">Materiales necesarios</span>
+            <span class="badge badge-grass">Calculado</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div class="summary-item">
+              <div class="summary-item-info">
+                <div class="pixel-block block-stone" style="width:20px;height:20px;flex-shrink:0"></div>
+                <span class="summary-item-name">Piedra</span>
+              </div>
+              <span class="font-mono text-gold" style="font-size:18px">1152</span>
+            </div>
+            <div class="summary-item">
+              <div class="summary-item-info">
+                <div class="pixel-block block-brick" style="width:20px;height:20px;flex-shrink:0"></div>
+                <span class="summary-item-name">Ladrillo</span>
+              </div>
+              <span class="font-mono text-gold" style="font-size:18px">288</span>
+            </div>
+            <div class="summary-item">
+              <div class="summary-item-info">
+                <div class="pixel-block block-wood" style="width:20px;height:20px;flex-shrink:0"></div>
+                <span class="summary-item-name">Tronco de Roble</span>
+              </div>
+              <span class="font-mono text-gold" style="font-size:18px">96</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features-section" id="features">
+    <div class="section-title">¿Qué hace CraftLog?</div>
+    <div class="features-grid" id="que-hace">
+
+      <div class="feature-card">
+        <div class="pixel-block block-diamond-ore feature-icon" style="width:40px;height:40px;"></div>
+        <div class="feature-title">Desglose recursivo</div>
+        <p class="feature-desc">
+          Calcula automáticamente todas las materias primas necesarias para cualquier ítem, sin importar qué tan compleja sea su receta.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="pixel-block block-brick feature-icon" style="width:40px;height:40px;"></div>
+        <div class="feature-title">Control de inventario</div>
+        <p class="feature-desc">
+          Registra lo que ya tienes y el sistema descuenta esos materiales automáticamente de tus requerimientos.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="pixel-block block-iron feature-icon" style="width:40px;height:40px;"></div>
+        <div class="feature-title">Tiempo de horneado</div>
+        <p class="feature-desc">
+          Calcula cuánto tiempo necesitarás en tus hornos y cuánto combustible usar para procesar los materiales fundibles.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="pixel-block block-gold feature-icon" style="width:40px;height:40px;"></div>
+        <div class="feature-title">Gestión de proyectos</div>
+        <p class="feature-desc">
+          Guarda, edita y organiza múltiples proyectos de construcción. Accede a tu historial cuando quieras.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer simple -->
+  <footer style="padding: 24px 40px; border-top: 2px solid var(--border); display:flex; align-items:center; justify-content:space-between;">
+    <span style="font-family:var(--font-pixel);font-size:7px;color:var(--text-muted)">CRAFTLOG © 2025 — CECyTE EM Nicolás Romero</span>
+    <div class="flex gap-sm">
+      <a href="login.html" class="btn btn-ghost btn-sm">Entrar</a>
+      <a href="register.html" class="btn btn-primary btn-sm">Registro</a>
+    </div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis proyectos — CraftLog</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- Sidebar izquierdo -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <a href="proyecto.html" class="btn btn-primary btn-full" id="btnNuevoProyecto">
+          + Nuevo proyecto
+        </a>
+      </div>
+
+      <div class="sidebar-history">
+
+        <div class="history-section">
+          <div class="history-label">Reciente</div>
+          <a href="proyecto.html" class="history-item">
+            <div class="history-item-icon" style="background:var(--mc-stone)"></div>
+            Castillo de Piedra
+          </a>
+          <a href="proyecto.html" class="history-item">
+            <div class="history-item-icon" style="background:var(--mc-iron,#C8C8C8)"></div>
+            Granja de Hierro
+          </a>
+        </div>
+
+        <div class="history-section">
+          <div class="history-label">Ayer</div>
+          <a href="proyecto.html" class="history-item">
+            <div class="history-item-icon" style="background:#4A3728"></div>
+            Almacén Automático
+          </a>
+        </div>
+
+        <div class="history-section">
+          <div class="history-label">30 días anteriores</div>
+          <a href="proyecto.html" class="history-item">
+            <div class="history-item-icon" style="background:#1A3A5C"></div>
+            Base Submarina
+          </a>
+          <a href="proyecto.html" class="history-item">
+            <div class="history-item-icon" style="background:#4A4A4A"></div>
+            Muros de la ciudad
+          </a>
+        </div>
+
+      </div>
+
+      <!-- Sidebar footer — área de usuario -->
+      <div style="padding:var(--pad-md);border-top:2px solid var(--border);">
+        <div class="flex items-center gap-sm">
+          <div class="avatar">AK</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">Antony Kevin</div>
+            <div class="text-xs text-muted">Programación 2023-2026</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+
+      <!-- Header de la app -->
+      <header class="content-header">
+        <div class="flex items-center gap-sm">
+          <button class="toggle-btn" id="toggleSidebar" aria-label="Mostrar/ocultar menú">☰</button>
+          <a href="index.html" class="navbar-brand" style="text-decoration:none;">
+            <div>
+              <div class="brand-text" style="font-size:9px;">CRAFTLOG</div>
+            </div>
+          </a>
+        </div>
+
+        <span class="content-header-title">Vista general</span>
+
+        <div class="flex items-center gap-sm">
+          <!-- Búsqueda rápida -->
+          <input type="search" class="search-bar" placeholder="Buscar proyecto..." style="width:180px;height:32px;font-size:12px;" id="searchProjects">
+
+          <!-- Perfil dropdown -->
+          <div class="dropdown" id="profileDropdown">
+            <button class="avatar" id="profileBtn" aria-label="Menú de perfil" onclick="toggleDropdown()">AK</button>
+            <div class="dropdown-menu" id="dropdownMenu" role="menu">
+              <div style="padding:10px 16px;border-bottom:1px solid var(--border);">
+                <div style="font-size:13px;font-weight:500;">Antony Kevin</div>
+                <div class="text-xs text-muted">Programación</div>
+              </div>
+              <!-- TODO: backend — GET /api/usuario/perfil → cargar datos -->
+              <button class="dropdown-item" onclick="alert('Área de oportunidad: subir foto al servidor (POST /api/usuario/foto)')">
+                Cambiar foto de perfil
+              </button>
+              <div class="dropdown-sep"></div>
+              <div style="padding:6px 16px;">
+                <div class="text-xs text-muted" style="margin-bottom:6px;font-family:var(--font-pixel);font-size:7px;letter-spacing:1px;">TEMA</div>
+                <div class="flex gap-sm">
+                  <button class="btn btn-secondary btn-sm" style="flex:1" onclick="setTheme('normal')">Normal</button>
+                  <button class="btn btn-accent btn-sm" style="flex:1" onclick="setTheme('mc')">Minecraft</button>
+                </div>
+              </div>
+              <div class="dropdown-sep"></div>
+              <a href="login.html" class="dropdown-item danger">Cerrar sesión</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Body -->
+      <div class="content-body">
+
+        <!-- Estadísticas rápidas -->
+        <div class="stats-row" style="margin-bottom:var(--pad-lg)">
+          <div class="stat-card">
+            <div class="stat-label">Proyectos totales</div>
+            <div class="stat-value accent" id="statProyectos">5</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Materiales calculados</div>
+            <div class="stat-value gold" id="statMateriales">1,824</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Horas de horneado</div>
+            <div class="stat-value green" id="statHoras">12.4</div>
+          </div>
+        </div>
+
+        <!-- Encabezado de sección -->
+        <div class="flex items-center justify-between mb-md">
+          <span style="font-family:var(--font-pixel);font-size:9px;color:var(--text-secondary);letter-spacing:1px;">TUS PROYECTOS</span>
+          <div class="flex gap-sm">
+            <button class="btn btn-ghost btn-sm">Ordenar</button>
+            <button class="btn btn-ghost btn-sm">Filtrar</button>
+          </div>
+        </div>
+
+        <!-- Grid de proyectos -->
+        <div class="projects-grid" id="projectsGrid">
+
+          <div class="project-card" onclick="window.location.href='proyecto.html'">
+            <div class="project-card-header">
+              <div class="pixel-block block-stone project-block-icon"></div>
+              <div>
+                <div class="project-card-name">Castillo de Piedra</div>
+                <div class="project-card-meta">Modificado hoy</div>
+              </div>
+            </div>
+            <div class="project-card-footer">
+              <span class="badge badge-stone">18 stacks ladrillo</span>
+              <span class="text-xs text-muted">→</span>
+            </div>
+          </div>
+
+          <div class="project-card" onclick="window.location.href='proyecto.html'">
+            <div class="project-card-header">
+              <div class="pixel-block block-iron project-block-icon"></div>
+              <div>
+                <div class="project-card-name">Granja de Hierro</div>
+                <div class="project-card-meta">Modificado ayer</div>
+              </div>
+            </div>
+            <div class="project-card-footer">
+              <span class="badge badge-diamond">Redstone</span>
+              <span class="text-xs text-muted">→</span>
+            </div>
+          </div>
+
+          <div class="project-card" onclick="window.location.href='proyecto.html'">
+            <div class="project-card-header">
+              <div class="pixel-block" style="background:#4A3728;" class="project-block-icon"></div>
+              <div>
+                <div class="project-card-name">Almacén Automático</div>
+                <div class="project-card-meta">Hace 2 días</div>
+              </div>
+            </div>
+            <div class="project-card-footer">
+              <span class="badge badge-gold">Cofres dobles</span>
+              <span class="text-xs text-muted">→</span>
+            </div>
+          </div>
+
+          <div class="project-card" onclick="window.location.href='proyecto.html'">
+            <div class="project-card-header">
+              <div class="pixel-block" style="background:#1A3A5C;width:28px;height:28px;" class="project-block-icon"></div>
+              <div>
+                <div class="project-card-name">Base Submarina</div>
+                <div class="project-card-meta">Hace 3 semanas</div>
+              </div>
+            </div>
+            <div class="project-card-footer">
+              <span class="badge badge-redstone">En progreso</span>
+              <span class="text-xs text-muted">→</span>
+            </div>
+          </div>
+
+          <!-- Card de crear nuevo -->
+          <div class="project-card add-card" id="btnAddCard" onclick="crearProyecto()">
+            <div style="font-size:32px;font-family:var(--font-pixel);line-height:1;">+</div>
+            <div style="font-family:var(--font-pixel);font-size:8px;letter-spacing:0.5px;">Nuevo proyecto</div>
+          </div>
+
+        </div>
+
+        <!-- Área de oportunidad visible -->
+        <div class="card" style="margin-top:var(--pad-xl);border-color:rgba(247,201,72,0.2);background:rgba(247,201,72,0.03);">
+          <div class="flex items-center gap-sm mb-md">
+            <span class="badge badge-gold">Área de oportunidad</span>
+            <span class="text-xs text-muted">Backend pendiente</span>
+          </div>
+          <div style="font-size:12px;color:var(--text-secondary);line-height:1.8;">
+            Esta sección cargará los proyectos reales desde el servidor via
+            <code style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:2px;font-size:11px;">GET /api/proyectos?usuario_id={id}</code>
+            — tabla <strong>PROYECTO</strong> en MySQL.
+            El botón "Nuevo proyecto" enviará
+            <code style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:2px;font-size:11px;">POST /api/proyectos</code>
+            y redirigirá al workspace con el nuevo ID.
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Toggle sidebar
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    });
+
+    // Dropdown perfil
+    function toggleDropdown() {
+      document.getElementById('profileDropdown').classList.toggle('open');
+    }
+
+    document.addEventListener('click', (e) => {
+      const dd = document.getElementById('profileDropdown');
+      if (!dd.contains(e.target)) dd.classList.remove('open');
+    });
+
+    // Búsqueda de proyectos (local, frontend)
+    document.getElementById('searchProjects').addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      document.querySelectorAll('.project-card:not(.add-card)').forEach(card => {
+        const name = card.querySelector('.project-card-name')?.textContent.toLowerCase() || '';
+        card.style.display = name.includes(q) ? '' : 'none';
+      });
+    });
+
+    // Nuevo proyecto
+    function crearProyecto() {
+      // TODO: POST /api/proyectos → recibir nuevo ID → redirigir a proyecto.html?id={nuevo_id}
+      window.location.href = 'proyecto.html';
+    }
+
+    // Tema (placeholder)
+    function setTheme(t) {
+      console.log('[TODO] Cambiar tema:', t);
+      document.getElementById('profileDropdown').classList.remove('open');
+    }
+  </script>
+
+</body>
+</html>

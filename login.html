@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión — CraftLog</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="auth-page">
+
+    <!-- Brand mark arriba -->
+    <a href="index.html" class="navbar-brand" style="text-decoration:none;">
+      <div class="brand-icon" aria-hidden="true">
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel light"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel light"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel light"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel darker"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel dark"></div>
+        <div class="brand-icon-pixel"></div>
+        <div class="brand-icon-pixel darker"></div>
+        <div class="brand-icon-pixel dark"></div>
+      </div>
+      <div>
+        <div class="brand-text">CRAFTLOG</div>
+        <div class="brand-sub">Calculadora logística</div>
+      </div>
+    </a>
+
+    <!-- Auth box -->
+    <div class="auth-box animate-in">
+      <h1 class="auth-title">Bienvenido de vuelta</h1>
+      <p class="auth-sub">Ingresa tus datos para continuar</p>
+
+      <form class="auth-form" id="loginForm" novalidate>
+
+        <div class="input-group">
+          <label for="loginUser" class="input-label">Usuario o correo</label>
+          <input
+            type="text"
+            id="loginUser"
+            class="input-field"
+            placeholder="steve@minecraft.net"
+            autocomplete="username"
+            required
+          >
+        </div>
+
+        <div class="input-group">
+          <label for="loginPass" class="input-label">Contraseña</label>
+          <input
+            type="password"
+            id="loginPass"
+            class="input-field"
+            placeholder="••••••••"
+            autocomplete="current-password"
+            required
+          >
+        </div>
+
+        <!-- TODO: backend — POST /api/auth/login con {usuario, password} -->
+        <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:8px;">
+          Entrar al juego
+        </button>
+
+      </form>
+
+      <div class="pixel-divider" style="margin: 20px 0;">
+        <span></span><span></span><span></span>
+      </div>
+
+      <p class="auth-link">
+        ¿No tienes cuenta? <a href="register.html">Regístrate aquí</a>
+      </p>
+      <p class="auth-link" style="margin-top:8px;">
+        <a href="index.html" style="color:var(--text-muted)">← Volver al inicio</a>
+      </p>
+    </div>
+
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const user = document.getElementById('loginUser').value;
+      const pass = document.getElementById('loginPass').value;
+      if (!user || !pass) return;
+      // TODO: Fetch API → POST /api/auth/login → validar en tabla USUARIO (MySQL/Java)
+      // Si es exitoso: guardar token de sesión y redirigir a dashboard.html
+      // Ejemplo: fetch('/api/auth/login', { method:'POST', body: JSON.stringify({usuario:user, password:pass}) })
+      console.log('[Backend TODO] Login con:', user);
+      // Simulación — redirige al dashboard
+      window.location.href = 'dashboard.html';
+    });
+  </script>
+
+</body>
+</html>

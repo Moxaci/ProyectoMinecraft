@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Castillo de Piedra — CraftLog</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="app-shell">
+
+    <!-- Sidebar izquierdo -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <a href="proyecto.html" class="btn btn-secondary btn-full btn-sm">
+          + Nuevo
+        </a>
+      </div>
+      <div class="sidebar-history">
+        <div class="history-section">
+          <div class="history-label">Reciente</div>
+          <a href="proyecto.html" class="history-item active">
+            <div class="history-item-icon" style="background:var(--mc-stone)"></div>
+            Castillo de Piedra
+          </a>
+          <a href="#" class="history-item">
+            <div class="history-item-icon" style="background:#C8C8C8"></div>
+            Granja de Hierro
+          </a>
+        </div>
+        <div class="history-section">
+          <div class="history-label">Ayer</div>
+          <a href="#" class="history-item">
+            <div class="history-item-icon" style="background:#4A3728"></div>
+            Almacén Automático
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer sidebar -->
+      <div style="padding:var(--pad-md);border-top:2px solid var(--border);">
+        <a href="dashboard.html" class="back-link">
+          ← Mis proyectos
+        </a>
+      </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+
+      <!-- Header del workspace -->
+      <header class="content-header">
+        <div class="flex items-center gap-sm">
+          <button class="toggle-btn" id="toggleSidebar" aria-label="Menú">☰</button>
+        </div>
+
+        <!-- Título editable del proyecto -->
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="pixel-block block-stone" style="width:20px;height:20px;" aria-hidden="true"></div>
+          <input
+            type="text"
+            id="projectTitle"
+            value="Castillo de Piedra"
+            style="background:transparent;border:none;outline:none;font-family:var(--font-pixel);font-size:10px;color:var(--text-primary);letter-spacing:0.3px;width:200px;text-align:center;"
+            title="Haz clic para renombrar"
+          >
+          <!-- TODO: backend — PATCH /api/proyectos/{id} con {nombre} al cambiar nombre -->
+        </div>
+
+        <div class="flex items-center gap-sm">
+          <!-- Botón calcular -->
+          <button class="btn btn-accent" id="btnCalcular">
+            ⬡ Calcular
+          </button>
+
+          <!-- Toggle panel derecho -->
+          <button class="btn btn-secondary btn-sm" id="togglePanel" title="Mostrar/ocultar lista">
+            Lista ▶
+          </button>
+
+          <!-- Perfil -->
+          <div class="dropdown" id="profileDropdown">
+            <button class="avatar" onclick="toggleDropdown()">AK</button>
+            <div class="dropdown-menu" id="dropdownMenu">
+              <a href="dashboard.html" class="dropdown-item">Mis proyectos</a>
+              <div class="dropdown-sep"></div>
+              <a href="login.html" class="dropdown-item danger">Cerrar sesión</a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Workspace body -->
+      <div class="workspace">
+
+        <!-- Panel izquierdo: catálogo de bloques -->
+        <section class="catalog-panel">
+
+          <div class="catalog-header">
+            <input
+              type="search"
+              class="search-bar"
+              placeholder="Buscar bloque o material..."
+              id="searchBlocks"
+              style="height:36px;"
+            >
+          </div>
+
+          <!-- Inventario disponible -->
+          <div class="card" style="margin-bottom:var(--pad-lg);">
+            <div class="flex items-center justify-between mb-md">
+              <span style="font-family:var(--font-pixel);font-size:8px;color:var(--text-secondary)">Tu inventario</span>
+              <!-- TODO: backend — GET /api/inventario?usuario_id={id} -->
+              <button class="btn btn-ghost btn-sm" onclick="alert('Área de oportunidad: cargar inventario del servidor')">
+                Sincronizar
+              </button>
+            </div>
+            <div class="flex gap-sm" style="flex-wrap:wrap;">
+              <span class="badge badge-stone">Piedra ×256</span>
+              <span class="badge badge-grass">Madera ×128</span>
+              <span class="badge badge-gold">Carbón ×64</span>
+            </div>
+            <p class="text-xs text-muted" style="margin-top:8px;">
+              Los materiales del inventario se descuentan del cálculo automáticamente.
+            </p>
+          </div>
+
+          <!-- Sección: Bloques de construcción -->
+          <div class="catalog-section-title">Bloques de construcción</div>
+          <div class="blocks-grid" id="blocksGrid">
+
+            <div class="block-item" data-name="Ladrillo de Piedra" onclick="addToList(this)">
+              <div class="pixel-block block-brick block-icon-img"></div>
+              <span class="block-name">Ladrillo de Piedra</span>
+            </div>
+            <div class="block-item" data-name="Piedra" onclick="addToList(this)">
+              <div class="pixel-block block-stone block-icon-img"></div>
+              <span class="block-name">Piedra</span>
+            </div>
+            <div class="block-item" data-name="Madera de Roble" onclick="addToList(this)">
+              <div class="pixel-block block-wood block-icon-img"></div>
+              <span class="block-name">Madera de Roble</span>
+            </div>
+            <div class="block-item" data-name="Cristal" onclick="addToList(this)">
+              <div class="pixel-block block-diamond-ore block-icon-img"></div>
+              <span class="block-name">Cristal</span>
+            </div>
+            <div class="block-item" data-name="Hierro" onclick="addToList(this)">
+              <div class="pixel-block block-iron block-icon-img"></div>
+              <span class="block-name">Hierro</span>
+            </div>
+            <div class="block-item" data-name="Obsidiana" onclick="addToList(this)">
+              <div class="pixel-block block-obsidian block-icon-img"></div>
+              <span class="block-name">Obsidiana</span>
+            </div>
+            <div class="block-item" data-name="Bloque de Oro" onclick="addToList(this)">
+              <div class="pixel-block block-gold block-icon-img"></div>
+              <span class="block-name">Bloque de Oro</span>
+            </div>
+            <div class="block-item" data-name="Pasto" onclick="addToList(this)">
+              <div class="pixel-block block-grass-top block-icon-img"></div>
+              <span class="block-name">Pasto</span>
+            </div>
+
+          </div>
+
+          <!-- Área de oportunidad -->
+          <div class="card" style="border-color:rgba(247,201,72,0.2);background:rgba(247,201,72,0.03);margin-top:var(--pad-lg);">
+            <span class="badge badge-gold" style="margin-bottom:8px;">Área de oportunidad</span>
+            <p class="text-xs text-muted" style="line-height:1.8;margin-top:8px;">
+              Este catálogo se cargará desde
+              <code style="background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:2px;">GET /api/items</code>
+              — tabla <strong>ITEM</strong> con todas las recetas. Incluirá búsqueda en tiempo real por nombre.
+            </p>
+          </div>
+
+        </section>
+
+        <!-- Panel derecho: lista a calcular -->
+        <aside class="summary-panel" id="summaryPanel">
+
+          <div class="summary-header">
+            <span class="summary-title">A calcular</span>
+            <span class="badge badge-diamond" id="countBadge">2 items</span>
+          </div>
+
+          <ul class="summary-list" id="summaryList">
+
+            <li class="summary-item" data-item="Ladrillo de Piedra">
+              <div class="summary-item-info">
+                <div class="pixel-block block-brick" style="width:20px;height:20px;flex-shrink:0;"></div>
+                <span class="summary-item-name">Ladrillo de Piedra</span>
+              </div>
+              <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQty(this, -1)">−</button>
+                <span class="qty-number">64</span>
+                <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+              </div>
+              <button onclick="removeItem(this)" class="btn btn-ghost btn-sm" style="padding:0 4px;color:var(--text-muted);font-size:16px;" title="Quitar">×</button>
+            </li>
+
+            <li class="summary-item" data-item="Cristal">
+              <div class="summary-item-info">
+                <div class="pixel-block block-diamond-ore" style="width:20px;height:20px;flex-shrink:0;"></div>
+                <span class="summary-item-name">Cristal</span>
+              </div>
+              <div class="qty-controls">
+                <button class="qty-btn" onclick="changeQty(this, -1)">−</button>
+                <span class="qty-number">128</span>
+                <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+              </div>
+              <button onclick="removeItem(this)" class="btn btn-ghost btn-sm" style="padding:0 4px;color:var(--text-muted);font-size:16px;" title="Quitar">×</button>
+            </li>
+
+          </ul>
+
+          <div class="summary-footer">
+            <div class="flex items-center justify-between text-xs text-muted">
+              <span>Total unidades</span>
+              <span class="font-mono text-gold" style="font-size:16px;" id="totalUnits">192</span>
+            </div>
+            <div class="flex items-center justify-between text-xs text-muted">
+              <span>Stacks completos</span>
+              <span class="font-mono" style="font-size:16px;" id="totalStacks">3</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- Botón calcular principal -->
+            <button class="btn btn-primary btn-full" id="btnCalcularPanel" onclick="calcular()">
+              ⬡ Calcular proyecto
+            </button>
+            <button class="btn btn-secondary btn-full btn-sm" onclick="clearAll()">
+              Limpiar lista
+            </button>
+          </div>
+
+        </aside>
+
+        <!-- Botón flotante para mostrar panel (cuando está colapsado) -->
+        <button class="btn btn-accent hidden" id="showPanelBtn" onclick="showPanel()" style="position:absolute;bottom:24px;right:24px;z-index:50;">
+          Lista ▶
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Sidebar ──────────────────────────────────────
+    document.getElementById('toggleSidebar').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    });
+
+    // ── Dropdown ──────────────────────────────────────
+    function toggleDropdown() {
+      document.getElementById('profileDropdown').classList.toggle('open');
+    }
+    document.addEventListener('click', (e) => {
+      const dd = document.getElementById('profileDropdown');
+      if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+    });
+
+    // ── Panel derecho ──────────────────────────────────
+    document.getElementById('togglePanel').addEventListener('click', () => {
+      const panel = document.getElementById('summaryPanel');
+      const showBtn = document.getElementById('showPanelBtn');
+      const isCollapsed = panel.classList.toggle('collapsed');
+      document.getElementById('togglePanel').textContent = isCollapsed ? 'Lista ▶' : 'Lista ◀';
+      showBtn.classList.toggle('hidden', !isCollapsed);
+    });
+
+    function showPanel() {
+      document.getElementById('summaryPanel').classList.remove('collapsed');
+      document.getElementById('showPanelBtn').classList.add('hidden');
+      document.getElementById('togglePanel').textContent = 'Lista ◀';
+    }
+
+    // ── Añadir bloque a la lista ──────────────────────
+    function addToList(el) {
+      const name = el.getAttribute('data-name');
+      const list = document.getElementById('summaryList');
+
+      // Verificar si ya está en la lista
+      const existing = list.querySelector(`[data-item="${name}"]`);
+      if (existing) {
+        const qtyEl = existing.querySelector('.qty-number');
+        qtyEl.textContent = parseInt(qtyEl.textContent) + 64;
+        el.classList.add('selected');
+        updateTotals();
+        return;
+      }
+
+      // Crear item en la lista
+      const blockClass = el.querySelector('.pixel-block').className.split(' ')
+        .filter(c => c.startsWith('block-'))[0] || 'block-stone';
+
+      const li = document.createElement('li');
+      li.className = 'summary-item animate-in';
+      li.setAttribute('data-item', name);
+      li.innerHTML = `
+        <div class="summary-item-info">
+          <div class="pixel-block ${blockClass}" style="width:20px;height:20px;flex-shrink:0;"></div>
+          <span class="summary-item-name">${name}</span>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="changeQty(this, -1)">−</button>
+          <span class="qty-number">64</span>
+          <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
+        </div>
+        <button onclick="removeItem(this)" class="btn btn-ghost btn-sm" style="padding:0 4px;color:var(--text-muted);font-size:16px;" title="Quitar">×</button>
+      `;
+      list.appendChild(li);
+      el.classList.add('selected');
+      updateTotals();
+
+      // Asegura panel visible
+      showPanel();
+    }
+
+    // ── Cantidad ──────────────────────────────────────
+    function changeQty(btn, delta) {
+      const qtyEl = btn.closest('.qty-controls').querySelector('.qty-number');
+      const val = Math.max(1, parseInt(qtyEl.textContent) + delta * 64);
+      qtyEl.textContent = val;
+      updateTotals();
+    }
+
+    // ── Quitar item ───────────────────────────────────
+    function removeItem(btn) {
+      const li = btn.closest('.summary-item');
+      const name = li.getAttribute('data-item');
+      li.remove();
+      document.querySelectorAll(`[data-name="${name}"]`).forEach(el => el.classList.remove('selected'));
+      updateTotals();
+    }
+
+    // ── Limpiar todo ──────────────────────────────────
+    function clearAll() {
+      document.getElementById('summaryList').innerHTML = '';
+      document.querySelectorAll('.block-item').forEach(el => el.classList.remove('selected'));
+      updateTotals();
+    }
+
+    // ── Totales ───────────────────────────────────────
+    function updateTotals() {
+      let total = 0;
+      document.querySelectorAll('#summaryList .qty-number').forEach(el => {
+        total += parseInt(el.textContent) || 0;
+      });
+      document.getElementById('totalUnits').textContent = total.toLocaleString();
+      document.getElementById('totalStacks').textContent = Math.floor(total / 64);
+
+      const count = document.querySelectorAll('#summaryList .summary-item').length;
+      document.getElementById('countBadge').textContent = count + (count === 1 ? ' item' : ' items');
+    }
+
+    // ── Calcular ─────────────────────────────────────
+    function calcular() {
+      const items = [];
+      document.querySelectorAll('#summaryList .summary-item').forEach(li => {
+        items.push({
+          nombre: li.getAttribute('data-item'),
+          cantidad: parseInt(li.querySelector('.qty-number').textContent)
+        });
+      });
+
+      if (items.length === 0) {
+        alert('Agrega al menos un bloque a la lista para calcular.');
+        return;
+      }
+
+      // TODO: POST /api/calcular con body {proyecto_id, items:[{nombre, cantidad}]}
+      // El backend Java ejecuta el algoritmo recursivo de descomposición de recetas
+      // y devuelve: {materiales_base, tiempo_horneado, combustible_necesario}
+      console.log('[Backend TODO] Calcular proyecto:', JSON.stringify(items));
+      alert(`Área de oportunidad:\nSe enviará al servlet Java:\nPOST /api/calcular\n\n${items.map(i => `• ${i.nombre} ×${i.cantidad}`).join('\n')}`);
+    }
+
+    // ── Búsqueda de bloques ───────────────────────────
+    document.getElementById('searchBlocks').addEventListener('input', function() {
+      const q = this.value.toLowerCase();
+      document.querySelectorAll('.block-item').forEach(el => {
+        const name = el.getAttribute('data-name').toLowerCase();
+        el.style.display = name.includes(q) ? '' : 'none';
+      });
+    });
+
+    // ── Botón calcular del header ─────────────────────
+    document.getElementById('btnCalcular').addEventListener('click', calcular);
+
+    // ── Título editable ──────────────────────────────
+    document.getElementById('projectTitle').addEventListener('blur', function() {
+      // TODO: PATCH /api/proyectos/{id} con {nombre: this.value}
+      console.log('[Backend TODO] Renombrar proyecto:', this.value);
+    });
+
+    // Inicializar totales
+    updateTotals();
+  </script>
+
+</body>
+</html>
