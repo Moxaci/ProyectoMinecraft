@@ -1,10 +1,10 @@
-##CraftLog — Calculadora Logística
+## CraftLog — Calculadora Logística
 CraftLog es una aplicación web especializada en la optimización logística para procesos de construcción. Este proyecto nació para resolver la complejidad de planificar requerimientos de materiales en entornos de construcción digital, eliminando los cálculos manuales, repetitivos y propensos a errores.
 
-##¿Qué es CraftLog?
+## ¿Qué es CraftLog?
 Es una herramienta diseñada para gestionar proyectos de construcción de forma inteligente. El sistema permite al usuario definir los bloques finales deseados y el núcleo de la aplicación se encarga de realizar una descomposición recursiva para determinar todos los materiales base necesarios.
 
-* **Características principales:*
+* **Características principales:**
 Motor de cálculo automático: Desglosa automáticamente las recetas de crafteo hasta el nivel de material base.
 
 * **Control de inventario:** El sistema descuenta lo que ya tienes en tus cofres de los requerimientos totales.
@@ -13,7 +13,7 @@ Motor de cálculo automático: Desglosa automáticamente las recetas de crafteo 
 
 * **Cálculos avanzados:** Estima combustible necesario, tiempos de procesamiento en hornos y tiempo estimado de recolección (farmeo).
 
-##Tecnologías utilizadas
+## Tecnologías utilizadas
 Este proyecto cuenta con una arquitectura robusta:
 
 * **Frontend:** HTML5, CSS3 (con sistema de diseño inspirado en estética pixel-art).
@@ -24,7 +24,7 @@ Este proyecto cuenta con una arquitectura robusta:
 
 * **Conectividad:** JDBC para la comunicación entre el motor lógico y la base de datos.
 
-##Cómo funciona
+## Cómo funciona
 * **Acceso:** Inicia sesión en tu cuenta para acceder a tu historial.
 
 * **Crear Proyecto:** Define un nombre y agrega los bloques o estructuras que planeas construir.
