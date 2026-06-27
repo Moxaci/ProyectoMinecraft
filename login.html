@@ -94,12 +94,33 @@
       const user = document.getElementById('loginUser').value;
       const pass = document.getElementById('loginPass').value;
       if (!user || !pass) return;
-      // TODO: Fetch API → POST /api/auth/login → validar en tabla USUARIO (MySQL/Java)
-      // Si es exitoso: guardar token de sesión y redirigir a dashboard.html
-      // Ejemplo: fetch('/api/auth/login', { method:'POST', body: JSON.stringify({usuario:user, password:pass}) })
+      // TODO: Aquí va el puente para conectar con la base de datos.
+// Cuando el usuario le dé a "Entrar", este código va a mandar el usuario y 
+// la contraseña a nuestra base de datos (MySQL/Java) para ver si coinciden.
+// Si los datos son correctos, guardamos que la sesión está abierta y 
+// saltamos automáticamente a la pantalla del panel (dashboard.html).
+// Ejemplo de cómo se conectan: fetch('/api/auth/login', { method:'POST', body: JSON.stringify({usuario:user, password:pass}) })
       console.log('[Backend TODO] Login con:', user);
       // Simulación — redirige al dashboard
       window.location.href = 'dashboard.html';
+    });
+  </script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+    
+      const usuarioTemporal = "admin";
+      const passTemporal = "123456";
+
+      const user = document.getElementById('loginUser').value;
+      const pass = document.getElementById('loginPass').value;
+
+      if (user === usuarioTemporal && pass === passTemporal) {
+        alert("Acceso concedido");
+        window.location.href = 'dashboard.html';
+      } else {
+        alert("Usuario o contraseña incorrectos");
+      }
     });
   </script>
 

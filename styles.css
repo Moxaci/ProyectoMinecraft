@@ -3,7 +3,15 @@
    Inspirado en Minecraft, con identidad propia
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=Inter:wght@400;500;600&display=swap');
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('fonts/Minecraft.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'VT323';
+  src: url('fonts/Minecraft.ttf') format('truetype');
+}
 
 /* ── Tokens ──────────────────────────────────────────────── */
 :root {
