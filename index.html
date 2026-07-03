@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CraftLog — Calculadora Logística</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="CSS/base.css">
+  <link rel="stylesheet" href="CSS/index.css">
 </head>
 <body>
 
@@ -37,6 +38,9 @@
     </a>
 
     <div class="nav-links">
+      <button id="accessibility-toggle" class="btn btn-ghost btn-sm" title="Modo daltónico" style="font-family: var(--font-pixel); font-size: 8px;">
+        Ver
+      </button>
       <a href="#que-hace" class="btn btn-ghost">¿Qué es?</a>
       <a href="#features" class="btn btn-ghost">Funciones</a>
       <a href="login.html" class="btn btn-secondary">Entrar</a>
@@ -181,5 +185,23 @@
     </div>
   </footer>
 
+  <script>
+    const accessibilityBtn = document.getElementById('accessibility-toggle');
+    
+    // Comprobar si el usuario ya tenía activado el modo previamente
+    if (localStorage.getItem('colorblindMode') === 'true') {
+      document.body.classList.add('colorblind-mode');
+      accessibilityBtn.textContent = 'Normal';
+    }
+
+    accessibilityBtn.addEventListener('click', () => {
+      const isAccessible = document.body.classList.toggle('colorblind-mode');
+      // Guardar la preferencia en el almacenamiento local del navegador
+      localStorage.setItem('colorblindMode', isAccessible);
+      
+      // Cambiar el texto del botón de forma dinámica
+      accessibilityBtn.textContent = isAccessible ? 'Normal' : 'Ver';
+    });
+  </script>
 </body>
 </html>

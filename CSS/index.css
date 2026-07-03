@@ -1,0 +1,241 @@
+/* ============================================================
+   CRAFTLOG — Index / Landing Page Styles
+   ============================================================ */
+
+/* ── Navbar ──────────────────────────────────────────────── */
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(12px, 2vw, 24px) clamp(16px, 4vw, 40px);
+  border-bottom: 2px solid var(--border);
+  background: rgba(15, 17, 23, 0.85);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-text {
+  font-family: var(--font-pixel);
+  font-size: clamp(12px, 1.5vw, 18px);
+  letter-spacing: 1px;
+}
+
+/* Icono de diamante hecho con pixeles */
+.brand-icon {
+  display: grid;
+  grid-template-columns: repeat(4, 4px);
+  gap: 1px;
+}
+.brand-icon-pixel {
+  width: 4px; height: 4px;
+  background: var(--mc-diamond);
+}
+.brand-icon-pixel.dark { background: #2cb5c4; }
+.brand-icon-pixel.darker { background: #1a8391; }
+.brand-icon-pixel.light { background: #9bf2fa; }
+
+/* ── Hero Section (Corregido a 2 Columnas) ──────────────── */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  padding: clamp(60px, 10vw, 120px) clamp(20px, 5vw, 40px);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* En PC se pone en dos columnas */
+@media (min-width: 850px) {
+  .hero {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .hero-left {
+    flex: 1;
+    max-width: 55%;
+    text-align: left;
+  }
+  .hero-right {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+.hero-eyebrow {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: var(--mc-diamond);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+
+.hero-title {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-title);
+  line-height: 1.3;
+  margin-bottom: 24px;
+}
+
+.hero-desc {
+  color: var(--text-muted);
+  font-size: var(--fs-body);
+  margin-bottom: 32px;
+  max-width: 90%;
+}
+
+.hero-ctas {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Estilos de las mini-tarjetas de estadísticas ────────── */
+.stats-row {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.stat-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 6px;
+  text-align: center;
+}
+.stat-label {
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* ── Lista de materiales (Summary Items) ─────────────────── */
+.summary-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+.summary-item-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.summary-item-name {
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  color: var(--text);
+}
+
+/* ── Fallbacks de bloques faltantes ──────────────────────── */
+.block-brick { background-color: #9c4c44; }
+.block-diamond-ore { background-color: #7f7f7f; }
+
+/* ── Título de Secciones ─────────────────────────────────── */
+.section-title {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-subtitle);
+  text-align: center;
+  margin-bottom: 48px;
+  color: var(--text);
+}
+
+/* ── Features Grid (Se adapta a cualquier pantalla) ─────── */
+.features-grid {
+  display: grid;
+  /* Crea columnas automáticas de mínimo 280px, si no caben se bajan solas */
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 0 clamp(16px, 5vw, 40px) 60px clamp(16px, 5vw, 40px);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 24px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-strong);
+  background: var(--bg-hover);
+}
+
+.feature-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(10px, 1vw + 2px, 12px);
+  margin: 16px 0 8px 0;
+}
+
+.feature-desc {
+  color: var(--text-muted);
+  font-size: var(--fs-body);
+}
+
+/* ── Sistema de Bloques de Minecraft con Fallback ────────── */
+.pixel-block {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.2), 
+              inset -2px -2px 0 rgba(0, 0, 0, 0.4);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  
+  /* Aquí está la magia: Usa la variable del HTML o ninguna si no existe */
+  background-image: var(--block-img, none); 
+}
+/* Clases específicas: El background-color entra si la url falla o no existe */
+.block-stone {
+  background-color: var(--mc-stone);
+  background-image: url('../img/blocks/stone.png');
+}
+
+.block-iron {
+  background-color: var(--mc-iron);
+  background-image: url('../img/blocks/iron_block.png');
+}
+
+.block-gold {
+  background-color: var(--mc-gold);
+  background-image: url('../img/blocks/gold_block.png');
+}
+
+.block-diamond {
+  background-color: var(--mc-diamond);
+  background-image: url('../img/blocks/diamond_block.png');
+}
+
+.block-grass {
+  background-color: var(--mc-grass);
+  background-image: url('../img/blocks/grass_block_side.png');
+}
+
+.block-wood {
+  background-color: var(--mc-wood);
+  background-image: url('../img/blocks/oak_log.png');
+}

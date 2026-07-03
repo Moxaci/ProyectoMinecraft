@@ -1,0 +1,198 @@
+/* ============================================================
+   CRAFTLOG — Design System & Base Globals
+   ============================================================ */
+
+@font-face {
+  font-family: 'Press Start 2P';
+  src: url('../fonts/Minecraft.ttf') format('truetype');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'VT323';
+  src: url('../fonts/Minecraft.ttf') format('truetype');
+  font-display: swap;
+}
+
+/* ── Tokens de Diseño y Escalado Fluido ──────────────────── */
+:root {
+  /* Minecraft Palette */
+  --mc-dirt:      #8B6914;
+  --mc-stone:     #7F7F7F;
+  --mc-grass:     #5D9E3C;
+  --mc-wood:      #A0702A;
+  --mc-iron:      #D8D8D8;
+  --mc-obsidian:  #1A1A2E;
+  --mc-diamond:   #47D7E5;
+  --mc-gold:      #F7C948;
+  --mc-redstone:  #D4321F;
+  --mc-netherite: #2C2C2C;
+
+  /* App Palette */
+  --bg:           #0F1117;
+  --bg-card:      #161B27;
+  --bg-hover:     #1C2235;
+  --border:       rgba(255, 255, 255, 0.07);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --text:         #F3F4F6;
+  --text-muted:   #9CA3AF;
+  
+  /* Fuentes base */
+  --font-pixel:   'Press Start 2P', monospace;
+  --font-text:    'VT323', sans-serif;
+
+  /* Escalado de fuentes inteligente según pantalla (min, recomendado, max) */
+  --fs-title: clamp(1.5rem, 4vw + 0.5rem, 2.8rem);
+  --fs-subtitle: clamp(1rem, 2vw + 0.5rem, 1.4rem);
+  --fs-body: clamp(0.95rem, 1.2vw + 0.3rem, 1.15rem);
+  --fs-pixel-sm: clamp(7px, 0.6vw + 3px, 10px);
+}
+
+/* ── Reset Global ────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: var(--fs-body);
+  line-height: 1.4;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ── Componentes Reutilizables (Botones y Flex) ─────────── */
+.flex { display: flex; }
+.gap-sm { gap: 12px; }
+.gap-md { gap: 24px; }
+
+.btn {
+  font-family: var(--font-pixel);
+  font-size: var(--fs-pixel-sm);
+  padding: 10px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Elementos Pixel Art Generales ───────────────────────── */
+.pixel-divider {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 24px 0;
+}
+.pixel-divider span {
+  display: inline-block;
+  width: 4px; height: 4px;
+  background: var(--border-strong);
+}
+.pixel-divider::before, .pixel-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── Scrollbar Custom ────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* ── Animaciones ─────────────────────────────────────────── */
+@keyframes pulse-accent {
+  0%, 100% { box-shadow: 0 0 12px rgba(71, 215, 229, 0.1); }
+  50% { box-shadow: 0 0 24px rgba(71, 215, 229, 0.25); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.6s ease forwards;
+}
+
+/* ── Utilidades de Flexbox y Espaciado ───────────────────── */
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.mb-md { margin-bottom: 16px; }
+
+/* ── Utilidades de Texto y Color ─────────────────────────── */
+.text-sm { font-size: clamp(0.75rem, 1vw, 0.875rem); }
+.text-xs { font-size: 0.75rem; }
+.font-mono { font-family: monospace; }
+.accent { color: var(--mc-diamond); }
+.gold { color: var(--mc-gold); }
+.green { color: var(--mc-grass); }
+
+/* ── Variaciones de Botones ──────────────────────────────── */
+.btn-primary { background: var(--mc-diamond); color: #000; font-weight: bold; }
+.btn-primary:hover { background: #5ce6f5; transform: translateY(-2px); }
+
+.btn-secondary { background: var(--bg-hover); border: 1px solid var(--border-strong); color: var(--text); }
+.btn-secondary:hover { background: var(--border-strong); }
+
+.btn-ghost { background: transparent; border: 1px solid transparent; color: var(--text-muted); }
+.btn-ghost:hover { color: var(--text); border-color: var(--border); }
+
+.btn-lg { padding: 14px 28px; font-size: var(--fs-body); }
+.btn-sm { padding: 6px 12px; font-size: 8px; }
+
+/* ── Etiquetas (Badges) ──────────────────────────────────── */
+.badge {
+  font-family: var(--font-pixel);
+  font-size: 7px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.badge-diamond { background: rgba(71, 215, 229, 0.1); color: var(--mc-diamond); border: 1px solid var(--mc-diamond); }
+.badge-grass { background: rgba(93, 158, 60, 0.1); color: var(--mc-grass); border: 1px solid var(--mc-grass); }
+
+/* ── Tarjetas (Cards) ────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
+.card-accent {
+  border-color: rgba(71, 215, 229, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Configuración para Daltonismo (Paleta Seguro/Contraste) ── */
+body.colorblind-mode {
+  /* Reemplazamos los tonos conflictivos rojo/verde por azul/naranja adaptados */
+  --mc-grass:     #0072B2; /* Azul intenso altamente visible */
+  --mc-redstone:  #D55E00; /* Naranja rojizo brillante */
+  --mc-dirt:      #73543F;
+  --mc-diamond:   #56B4E9; /* Celeste cielo de alto contraste */
+  --mc-gold:      #F0E442; /* Amarillo puro */
+  
+  /* Ajuste visual para el estado activo */
+  --accent: var(--mc-diamond);
+}
+
+/* Pequeño feedback visual al activar el botón */
+body.colorblind-mode #accessibility-toggle {
+  background: var(--bg-hover);
+  border-color: var(--mc-diamond);
+  color: var(--mc-diamond);
+}
