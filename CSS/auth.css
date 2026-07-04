@@ -1,0 +1,134 @@
+/* ============================================================
+   CRAFTLOG — Auth Styles (Login & Register)
+   ============================================================ */
+
+/* Contenedor principal centrado que ocupa toda la pantalla */
+.auth-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: clamp(20px, 4vw, 40px);
+  background-color: var(--bg);
+}
+
+/* Reutilización del Brand Mark centrado arriba del recuadro */
+.auth-page .navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.auth-page .brand-text {
+  font-family: var(--font-pixel);
+  font-size: clamp(14px, 2vw, 20px);
+  letter-spacing: 1px;
+}
+
+.auth-page .brand-sub {
+  font-size: clamp(0.75rem, 1vw, 0.85rem);
+  color: var(--text-muted);
+}
+
+/* ── La Caja de Autenticación (Escalable) ────────────────── */
+.auth-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: clamp(24px, 4vw, 40px);
+  width: 100%;
+  max-width: 420px; /* Evita que se deforme en pantallas gigantes */
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+  animation: fadeInUp 0.4s ease forwards;
+}
+
+.auth-title {
+  font-family: var(--font-pixel);
+  font-size: clamp(11px, 1.5vw + 4px, 15px);
+  text-align: center;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.auth-sub {
+  font-size: var(--fs-body);
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+/* ── Formularios y Campos de Entrada ─────────────────────── */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-label {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.input-field {
+  background-color: var(--bg);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  font-family: var(--font-text);
+  font-size: clamp(1rem, 1.2vw, 1.15rem);
+  padding: 12px 14px;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Focus con la estética del diamante de Minecraft */
+.input-field:focus {
+  border-color: var(--mc-diamond);
+  box-shadow: 0 0 8px rgba(71, 215, 229, 0.2);
+}
+
+/* ── Elementos Utilitarios de la caja ────────────────────── */
+.btn-full {
+  width: 100%;
+}
+
+.auth-link {
+  font-size: var(--fs-body);
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.auth-link a {
+  color: var(--mc-diamond);
+  transition: color 0.2s ease;
+}
+
+.auth-link a:hover {
+  color: #5ce6f5;
+  text-decoration: underline;
+}
+
+/* Ajuste específico para el icono pixel-art de la navbar en esta vista */
+.brand-icon {
+  display: grid;
+  grid-template-columns: repeat(4, 4px);
+  gap: 1px;
+}
+.brand-icon-pixel {
+  width: 4px;
+  height: 4px;
+  background: var(--mc-diamond);
+}
+.brand-icon-pixel.dark { background: #2cb5c4; }
+.brand-icon-pixel.darker { background: #1a8391; }
+.brand-icon-pixel.light { background: #9bf2fa; }

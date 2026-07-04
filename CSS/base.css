@@ -196,3 +196,25 @@ body.colorblind-mode #accessibility-toggle {
   border-color: var(--mc-diamond);
   color: var(--mc-diamond);
 }
+
+/* ── Configuración de Tipografías por Defecto (Modo Estándar) ── */
+:root {
+  /* Por defecto, la fuente de texto y de títulos es limpia y legible */
+  --font-text:  system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-pixel: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Mantienes tus tamaños normales... */
+  --fs-body: 14px;
+}
+
+/* ── Cuando se activa el Modo Minecraft, se inyecta la fuente pixelada ── */
+body.mc-classic-theme {
+  --font-text:  'VT323', monospace;
+  --font-pixel: 'Press Start 2P', display;
+}
+
+/* ── Cuando se activa el Modo Daltónico (Mantiene la fuente limpia para mejor accesibilidad) ── */
+body.colorblind-mode {
+  --font-text:  system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-pixel: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
