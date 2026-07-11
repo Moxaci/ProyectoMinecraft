@@ -299,4 +299,266 @@ function getEstadisticas($conn, $usuarioId) {
     
     return $estadisticas;
 }
+
+/**
+ * Obtiene todos los items disponibles (catálogo)
+ */
+function getAllItems($conn) {
+    $result = $conn->query("
+        SELECT id_item, nombre, descripcion, imagen, es_base, stack_max 
+        FROM item 
+        ORDER BY nombre
+    ");
+    
+    $items = [];
+    while ($row = $result->fetch_assoc()) {
+        $items[] = $row;
+    }
+    return $items;
+}
+
+/**
+ * Obtiene los items de un proyecto
+ */
+function getProyectoItems($conn, $proyectoId, $usuarioId) {
+    // Verificar que el proyecto pertenece al usuario
+    $stmt = $conn->prepare("SELECT id_proyecto FROM proyecto WHERE id_proyecto = ? AND id_usuario = ?");
+    $stmt->bind_param("ii", $proyectoId, $usuarioId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        return null;
+    }
+    
+    // Obtener items del proyecto
+    $stmt = $conn->prepare("
+        SELECT 
+            pd.id_item,
+            i.nombre,
+            i.imagen,
+            i.stack_max,
+            i.es_base,
+            pd.cantidad
+        FROM proyecto_detalle pd
+        JOIN item i ON pd.id_item = i.id_item
+        WHERE pd.id_proyecto = ?
+        ORDER BY i.nombre
+    ");
+    $stmt->bind_param("i", $proyectoId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $items = [];
+    while ($row = $result->fetch_assoc()) {
+        $items[] = $row;
+    }
+    return $items;
+}
+
+/**
+ * Agrega o actualiza un item en el proyecto
+ */
+function upsertProyectoItem($conn, $proyectoId, $itemId, $cantidad) {
+    $stmt = $conn->prepare("
+        INSERT INTO proyecto_detalle (id_proyecto, id_item, cantidad) 
+        VALUES (?, ?, ?)
+        ON DUPLICATE KEY UPDATE cantidad = cantidad + ?
+    ");
+    $stmt->bind_param("isii", $proyectoId, $itemId, $cantidad, $cantidad);
+    return $stmt->execute();
+}
+
+/**
+ * Actualiza la cantidad de un item en el proyecto
+ */
+function updateProyectoItem($conn, $proyectoId, $itemId, $cantidad) {
+    if ($cantidad <= 0) {
+        // Si la cantidad es 0 o negativa, eliminar el item
+        $stmt = $conn->prepare("DELETE FROM proyecto_detalle WHERE id_proyecto = ? AND id_item = ?");
+        $stmt->bind_param("is", $proyectoId, $itemId);
+        return $stmt->execute();
+    }
+    
+    $stmt = $conn->prepare("
+        UPDATE proyecto_detalle 
+        SET cantidad = ? 
+        WHERE id_proyecto = ? AND id_item = ?
+    ");
+    $stmt->bind_param("iis", $cantidad, $proyectoId, $itemId);
+    return $stmt->execute();
+}
+
+/**
+ * Elimina un item del proyecto
+ */
+function removeProyectoItem($conn, $proyectoId, $itemId) {
+    $stmt = $conn->prepare("DELETE FROM proyecto_detalle WHERE id_proyecto = ? AND id_item = ?");
+    $stmt->bind_param("is", $proyectoId, $itemId);
+    return $stmt->execute();
+}
+
+/**
+ * Calcula los materiales totales de un proyecto (recursivo)
+ */
+function calcularMateriales($conn, $proyectoId, $usuarioId) {
+    // Verificar que el proyecto pertenece al usuario
+    $stmt = $conn->prepare("SELECT id_proyecto FROM proyecto WHERE id_proyecto = ? AND id_usuario = ?");
+    $stmt->bind_param("ii", $proyectoId, $usuarioId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        return null;
+    }
+    
+    // Obtener los items del proyecto
+    $items = getProyectoItems($conn, $proyectoId, $usuarioId);
+    if (!$items) return null;
+    
+    $resultado = [];
+    $tiempoTotal = 0;
+    
+    foreach ($items as $item) {
+        $materiales = descomponerItem($conn, $item['id_item'], $item['cantidad']);
+        
+        // Sumar materiales
+        foreach ($materiales as $id => $data) {
+            if (isset($resultado[$id])) {
+                $resultado[$id]['cantidad'] += $data['cantidad'];
+                $resultado[$id]['tiempo'] += $data['tiempo'] ?? 0;
+            } else {
+                $resultado[$id] = $data;
+            }
+        }
+    }
+    
+    // Calcular tiempo total
+    $tiempoTotal = array_sum(array_column($resultado, 'tiempo'));
+    
+    return [
+        'materiales' => array_values($resultado),
+        'tiempo_total' => $tiempoTotal,
+        'stacks' => calcularStacks($resultado)
+    ];
+}
+
+/**
+ * Descompone recursivamente un item en sus materiales base
+ */
+function descomponerItem($conn, $itemId, $cantidad, $profundidad = 0) {
+    // Límite de recursión para evitar bucles infinitos
+    if ($profundidad > 10) return [];
+    
+    $resultado = [];
+    
+    // Verificar si es un item base
+    $stmt = $conn->prepare("SELECT es_base FROM item WHERE id_item = ?");
+    $stmt->bind_param("s", $itemId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $item = $result->fetch_assoc();
+    
+    if ($item && $item['es_base']) {
+        // Es un item base, agregarlo directamente
+        $resultado[$itemId] = [
+            'id_item' => $itemId,
+            'cantidad' => $cantidad,
+            'tiempo' => 0
+        ];
+        return $resultado;
+    }
+    
+    // Buscar recetas para este item
+    $stmt = $conn->prepare("
+        SELECT r.id_receta, r.cantidad_resultado, ir.id_item_ingred, ir.cantidad
+        FROM receta r
+        JOIN ingrediente_receta ir ON r.id_receta = ir.id_receta
+        WHERE r.id_item_resultado = ?
+    ");
+    $stmt->bind_param("s", $itemId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows === 0) {
+        // No hay receta, tratarlo como item base
+        $resultado[$itemId] = [
+            'id_item' => $itemId,
+            'cantidad' => $cantidad,
+            'tiempo' => 0
+        ];
+        return $resultado;
+    }
+    
+    // Procesar receta
+    $recetas = [];
+    while ($row = $result->fetch_assoc()) {
+        $recetas[$row['id_receta']]['resultado'] = $row['cantidad_resultado'];
+        $recetas[$row['id_receta']]['ingredientes'][] = [
+            'id_item' => $row['id_item_ingred'],
+            'cantidad' => $row['cantidad']
+        ];
+    }
+    
+    // Tomar la primera receta (simplificado)
+    $receta = reset($recetas);
+    $factor = $cantidad / $receta['resultado'];
+    
+    foreach ($receta['ingredientes'] as $ingrediente) {
+        $cantidadIngrediente = $ingrediente['cantidad'] * $factor;
+        $subItems = descomponerItem($conn, $ingrediente['id_item'], $cantidadIngrediente, $profundidad + 1);
+        
+        foreach ($subItems as $id => $data) {
+            if (isset($resultado[$id])) {
+                $resultado[$id]['cantidad'] += $data['cantidad'];
+            } else {
+                $resultado[$id] = $data;
+            }
+        }
+    }
+    
+    return $resultado;
+}
+
+/**
+ * Calcula stacks a partir de los materiales
+ */
+function calcularStacks($materiales) {
+    $stacks = [];
+    foreach ($materiales as $id => $data) {
+        $cantidad = $data['cantidad'];
+        $stackMax = $data['stack_max'] ?? 64;
+        $stacks[$id] = [
+            'id_item' => $id,
+            'cantidad' => $cantidad,
+            'stacks' => floor($cantidad / $stackMax),
+            'resto' => $cantidad % $stackMax,
+            'stack_max' => $stackMax
+        ];
+    }
+    return $stacks;
+}
+
+/**
+ * Obtiene el nombre de un item por su ID
+ */
+function getItemNombre($conn, $itemId) {
+    $stmt = $conn->prepare("SELECT nombre FROM item WHERE id_item = ?");
+    $stmt->bind_param("s", $itemId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        return $row['nombre'];
+    }
+    return $itemId;
+}
+
+/**
+ * Actualiza el nombre de un proyecto
+ */
+function updateProyectoNombre($conn, $proyectoId, $usuarioId, $nombre) {
+    $stmt = $conn->prepare("UPDATE proyecto SET nombre = ? WHERE id_proyecto = ? AND id_usuario = ?");
+    $stmt->bind_param("sii", $nombre, $proyectoId, $usuarioId);
+    return $stmt->execute();
+}
 ?>

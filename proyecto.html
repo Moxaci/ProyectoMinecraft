@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Castillo de Piedra — CraftLog</title>
+  <title>Proyecto — CraftLog</title>
   <link rel="stylesheet" href="CSS/base.css">
   <link rel="stylesheet" href="CSS/workspace.css">
 </head>
@@ -15,16 +15,15 @@
       
       <aside class="sidebar" id="sidebar" style="width: 240px; background: var(--bg-card); border-right: 1px solid var(--border-strong); display: flex; flex-direction: column; transition: width 0.3s;">
         <div style="padding: 16px;">
-          <a href="proyecto.html" class="btn btn-secondary" style="width: 100%;">
+          <a href="proyecto.html" class="btn btn-secondary" style="width: 100%;" id="btnNuevoProyecto">
             + Nuevo Proyecto
           </a>
         </div>
         <div style="flex: 1; padding: 0 16px; overflow-y: auto;">
           <div style="font-family: var(--font-pixel); font-size: 7px; color: var(--text-muted); margin-bottom: 8px;">Reciente</div>
-          <a href="proyecto.html" style="display: flex; align-items: center; gap: 8px; padding: 8px; background: var(--bg-hover); border-radius: 4px;">
-            <div style="width: 16px; height: 16px; background: var(--mc-stone); border-radius: 2px;"></div>
-            <span style="font-size: var(--fs-body);">Castillo de Piedra</span>
-          </a>
+          <div id="sidebarRecientes">
+            <!-- Se llena con JS -->
+          </div>
         </div>
         <div style="padding: 16px; border-top: 1px solid var(--border-strong);">
           <a href="dashboard.html" style="font-size: var(--fs-body); color: var(--text-muted);">← Mis proyectos</a>
@@ -38,12 +37,12 @@
             <button class="btn btn-secondary btn-sm" id="toggleSidebar" aria-label="Menú">☰</button>
             
             <div class="flex items-center" style="gap: 8px; margin-left: 12px;">
-              <div style="width: 16px; height: 16px; background: var(--mc-stone);"></div>
+              <div style="width: 16px; height: 16px; background: var(--mc-stone); border-radius: 2px;"></div>
               <input
                 type="text"
                 id="projectTitle"
-                value="Castillo de Piedra"
-                style="background: transparent; border: none; outline: none; font-family: var(--font-pixel); font-size: var(--fs-pixel-sm); color: var(--text); width: 180px;"
+                value="Cargando..."
+                style="background: transparent; border: none; outline: none; font-family: var(--font-pixel); font-size: var(--fs-pixel-sm); color: var(--text); width: 200px;"
                 title="Haz clic para renombrar"
               >
             </div>
@@ -51,7 +50,7 @@
 
           <div class="flex items-center gap-sm">
             <button class="btn btn-primary" id="btnCalcular">⬡ Calcular</button>
-            <button class="btn btn-secondary btn-sm" id="togglePanel">Lista ▶</button>
+            <button class="btn btn-secondary btn-sm" id="togglePanel">Lista ◀</button>
             
             <div class="dropdown" id="profileDropdown" style="position: relative;">
               <button class="btn btn-secondary btn-sm" style="border-radius: 50%; padding: 8px; width: 32px; height: 32px;" onclick="toggleDropdown()">AK</button>
@@ -63,7 +62,7 @@
 
           <section class="catalog-panel">
             <div class="catalog-header">
-              <input type="search" class="search-bar" placeholder="Buscar bloque o material..." id="searchBlocks">
+              <input type="search" class="search-bar" placeholder="🔍 Buscar bloque o material..." id="searchBlocks">
             </div>
 
             <div class="card" style="margin-bottom: 16px;">
@@ -71,80 +70,44 @@
                 <span style="font-family: var(--font-pixel); font-size: 7px; color: var(--text-muted)">Tu inventario</span>
                 <button class="btn btn-ghost btn-sm" onclick="alert('Sincronizando...')">Sincronizar</button>
               </div>
-              <div class="flex gap-sm" style="flex-wrap: wrap;">
-                <span class="badge badge-grass">Piedra ×256</span>
-                <span class="badge badge-grass">Madera ×128</span>
-                <span class="badge badge-diamond">Carbón ×64</span>
+              <div class="flex gap-sm" style="flex-wrap: wrap;" id="inventarioPreview">
+                <span class="badge badge-grass">Cargando...</span>
               </div>
             </div>
 
-            <div class="catalog-section-title">Bloques de construcción</div>
+            <div class="catalog-section-title"> Catálogo de bloques</div>
             <div class="blocks-grid" id="blocksGrid">
-              <div class="block-item" data-name="Ladrillo de Piedra" onclick="addToList(this)">
-                <div style="width: 24px; height: 24px; background: var(--mc-stone);"></div>
-                <span class="block-name">Ladrillo de Piedra</span>
-              </div>
-              <div class="block-item" data-name="Piedra" onclick="addToList(this)">
-                <div style="width: 24px; height: 24px; background: var(--mc-stone);"></div>
-                <span class="block-name">Piedra</span>
-              </div>
-              <div class="block-item" data-name="Madera de Roble" onclick="addToList(this)">
-                <div style="width: 24px; height: 24px; background: var(--mc-wood);"></div>
-                <span class="block-name">Madera de Roble</span>
-              </div>
-              <div class="block-item" data-name="Cristal" onclick="addToList(this)">
-                <div style="width: 24px; height: 24px; background: var(--mc-diamond);"></div>
-                <span class="block-name">Cristal</span>
-              </div>
-              <div class="block-item" data-name="Hierro" onclick="addToList(this)">
-                <div style="width: 24px; height: 24px; background: var(--mc-iron);"></div>
-                <span class="block-name">Hierro</span>
-              </div>
-              <div class="block-item" data-name="Obsidiana" onclick="addToList(this)">
-                <div style="width: 24px; height: 24px; background: var(--mc-obsidian);"></div>
-                <span class="block-name">Obsidiana</span>
-              </div>
+              <!-- Se llena con JS -->
             </div>
           </section>
 
           <aside class="summary-panel" id="summaryPanel">
             <div class="summary-header">
-              <span class="summary-title">A calcular</span>
-              <span class="badge badge-diamond" id="countBadge">2 items</span>
+              <span class="summary-title"> A calcular</span>
+              <span class="badge badge-diamond" id="countBadge">0 items</span>
             </div>
 
             <ul class="summary-list" id="summaryList">
-              <li class="summary-item" data-item="Ladrillo de Piedra">
-                <div class="summary-item-info">
-                  <div style="width: 20px; height: 20px; background: var(--mc-stone); flex-shrink: 0;"></div>
-                  <span class="summary-item-name">Ladrillo de Piedra</span>
-                </div>
-                <div class="qty-controls">
-                  <button class="qty-btn" onclick="changeQty(this, -1)">−</button>
-                  <span class="qty-number">64</span>
-                  <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
-                </div>
-                <button onclick="removeItem(this)" class="btn btn-ghost btn-sm" style="padding: 0 4px; font-size: 14px;">×</button>
-              </li>
+              <!-- Se llena con JS -->
             </ul>
 
             <div class="summary-footer">
               <div class="flex items-center justify-between text-xs" style="color: var(--text-muted);">
                 <span>Total unidades</span>
-                <span class="font-mono gold" style="font-size: 16px;" id="totalUnits">64</span>
+                <span class="font-mono gold" style="font-size: 16px;" id="totalUnits">0</span>
               </div>
               <div class="flex items-center justify-between text-xs" style="color: var(--text-muted);">
                 <span>Stacks completos</span>
-                <span class="font-mono" style="font-size: 16px;" id="totalStacks">1</span>
+                <span class="font-mono" style="font-size: 16px;" id="totalStacks">0</span>
               </div>
               <div class="pixel-divider" style="margin: 8px 0;"><span></span></div>
-              <button class="btn btn-primary" onclick="calcular()">⬡ Calcular proyecto</button>
-              <button class="btn btn-secondary btn-sm" onclick="clearAll()">Limpiar lista</button>
+              <button class="btn btn-primary" onclick="calcularProyecto()">⬡ Calcular proyecto</button>
+              <button class="btn btn-secondary btn-sm" id="btnLimpiar"> Limpiar lista</button>
             </div>
           </aside>
 
           <button class="btn btn-primary hidden" id="showPanelBtn" onclick="showPanel()" style="position: absolute; bottom: 24px; right: 24px; z-index: 50;">
-            Lista ▶
+             Lista ▶
           </button>
 
         </div>
@@ -153,7 +116,7 @@
   </div>
 
   <script>
-    // ── INTERRUPTOR DE ACCESIBILIDAD Y CONSERVACIÓN DE TEMAS ──
+    // ── INTERRUPTOR DE ACCESIBILIDAD ──
     function initTheme() {
       const savedTheme = localStorage.getItem('craftlog_theme') || 'normal';
       document.body.classList.remove('mc-classic-theme', 'colorblind-mode');
@@ -171,10 +134,9 @@
       }
     }
 
-    // Inicializar el tema antes de renderizar interacciones
     initTheme();
 
-    // ── LÓGICA DE INTERFAZ DEL PANEL ─────────────────────────
+    // ── CONTROLES DE UI ──
     document.getElementById('toggleSidebar').addEventListener('click', () => {
       const sb = document.getElementById('sidebar');
       sb.style.width = sb.style.width === '0px' ? '240px' : '0px';
@@ -184,101 +146,34 @@
       const panel = document.getElementById('summaryPanel');
       const showBtn = document.getElementById('showPanelBtn');
       const isCollapsed = panel.classList.toggle('collapsed');
-      document.getElementById('togglePanel').textContent = isCollapsed ? 'Lista ▶' : 'Lista ◀';
+      document.getElementById('togglePanel').textContent = isCollapsed ? '📋 Lista ▶' : '📋 Lista ◀';
       showBtn.classList.toggle('hidden', !isCollapsed);
     });
 
     function showPanel() {
       document.getElementById('summaryPanel').classList.remove('collapsed');
       document.getElementById('showPanelBtn').classList.add('hidden');
-      document.getElementById('togglePanel').textContent = 'Lista ◀';
+      document.getElementById('togglePanel').textContent = '📋 Lista ◀';
     }
 
-    function addToList(el) {
-      const name = el.getAttribute('data-name');
-      const list = document.getElementById('summaryList');
-      const existing = list.querySelector(`[data-item="${name}"]`);
-      
-      if (existing) {
-        const qtyEl = existing.querySelector('.qty-number');
-        qtyEl.textContent = parseInt(qtyEl.textContent) + 64;
-        updateTotals();
-        return;
-      }
-
-      const li = document.createElement('li');
-      li.className = 'summary-item';
-      li.setAttribute('data-item', name);
-      li.innerHTML = `
-        <div class="summary-item-info">
-          <div style="width:20px; height:20px; background:var(--mc-stone); flex-shrink:0;"></div>
-          <span class="summary-item-name">${name}</span>
-        </div>
-        <div class="qty-controls">
-          <button class="qty-btn" onclick="changeQty(this, -1)">−</button>
-          <span class="qty-number">64</span>
-          <button class="qty-btn" onclick="changeQty(this, 1)">+</button>
-        </div>
-        <button onclick="removeItem(this)" class="btn btn-ghost btn-sm" style="padding:0 4px; font-size:16px;">×</button>
-      `;
-      list.appendChild(li);
-      el.classList.add('selected');
-      updateTotals();
-      showPanel();
+    // ── DROPDOWN DE PERFIL ──
+    function toggleDropdown() {
+      document.getElementById('profileDropdown').classList.toggle('open');
     }
 
-    function changeQty(btn, delta) {
-      const qtyEl = btn.closest('.qty-controls').querySelector('.qty-number');
-      const val = Math.max(1, parseInt(qtyEl.textContent) + delta * 64);
-      qtyEl.textContent = val;
-      updateTotals();
-    }
+    document.addEventListener('click', (e) => {
+      const dd = document.getElementById('profileDropdown');
+      if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+    });
 
-    function removeItem(btn) {
-      const li = btn.closest('.summary-item');
-      const name = li.getAttribute('data-item');
-      li.remove();
-      document.querySelectorAll(`[data-name="${name}"]`).forEach(el => el.classList.remove('selected'));
-      updateTotals();
-    }
-
-    function clearAll() {
-      document.getElementById('summaryList').innerHTML = '';
-      document.querySelectorAll('.block-item').forEach(el => el.classList.remove('selected'));
-      updateTotals();
-    }
-
-    function updateTotals() {
-      let total = 0;
-      document.querySelectorAll('#summaryList .qty-number').forEach(el => {
-        total += parseInt(el.textContent) || 0;
-      });
-      document.getElementById('totalUnits').textContent = total.toLocaleString();
-      document.getElementById('totalStacks').textContent = Math.floor(total / 64);
-
-      const count = document.querySelectorAll('#summaryList .summary-item').length;
-      document.getElementById('countBadge').textContent = count + (count === 1 ? ' item' : ' items');
-    }
-
-    function calcular() {
-      const items = [];
-      document.querySelectorAll('#summaryList .summary-item').forEach(li => {
-        items.push({
-          nombre: li.getAttribute('data-item'),
-          cantidad: parseInt(li.querySelector('.qty-number').textContent)
-        });
-      });
-      if (items.length === 0) return alert('Lista vacía');
-      alert(`Enviando cálculo a Java:\n${items.map(i => `• ${i.nombre} ×${i.cantidad}`).join('\n')}`);
-    }
-
-    document.getElementById('searchBlocks').addEventListener('input', function() {
-      const q = this.value.toLowerCase();
-      document.querySelectorAll('.block-item').forEach(el => {
-        const name = el.getAttribute('data-name').toLowerCase();
-        el.style.display = name.includes(q) ? '' : 'none';
-      });
+    // ── BOTÓN NUEVO PROYECTO ──
+    document.getElementById('btnNuevoProyecto').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.location.href = 'proyecto.html';
     });
   </script>
+
+  <!-- Cargar el JS del proyecto -->
+  <script src="JS/proyecto.js"></script>
 </body>
 </html>
