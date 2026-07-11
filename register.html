@@ -95,7 +95,6 @@
         <!-- Error inline -->
         <p id="formError" class="text-sm" style="color:var(--text-red);display:none;"></p>
 
-        <!-- TODO: backend — POST /api/auth/register con {nombre, correo, password} -->
         <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:8px;">
           Crear cuenta
         </button>
@@ -116,27 +115,6 @@
 
   </div>
 
-  <script>
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const user  = document.getElementById('regUser').value.trim();
-      const email = document.getElementById('regEmail').value.trim();
-      const pass  = document.getElementById('regPass').value;
-      const conf  = document.getElementById('regPassConfirm').value;
-      const err   = document.getElementById('formError');
-
-      err.style.display = 'none';
-
-      if (user.length < 4) { err.textContent = 'El nombre debe tener al menos 4 caracteres.'; err.style.display = 'block'; return; }
-      if (pass.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres.'; err.style.display = 'block'; return; }
-      if (pass !== conf)   { err.textContent = 'Las contraseñas no coinciden.'; err.style.display = 'block'; return; }
-
-      // TODO: fetch('/api/auth/register', { method:'POST', body: JSON.stringify({nombre:user, correo:email, password:pass}) })
-      // Si 201 → redirigir a login.html con mensaje de éxito
-      console.log('[Backend TODO] Registro:', user, email);
-      window.location.href = 'login.html';
-    });
-  </script>
-
+  <script src="JS/register.js"></script>
 </body>
 </html>

@@ -18,36 +18,12 @@
         </a>
       </div>
 
-      <div class="sidebar-history">
+      <div class="sidebar-history" id="sidebarHistory">
         <div class="history-section">
           <div class="history-label">Reciente</div>
           <a href="proyecto.html" class="history-item">
             <div class="history-item-icon" style="background:var(--mc-stone)"></div>
             Castillo de Piedra
-          </a>
-          <a href="proyecto.html" class="history-item">
-            <div class="history-item-icon" style="background:var(--mc-iron,#C8C8C8)"></div>
-            Granja de Hierro
-          </a>
-        </div>
-
-        <div class="history-section">
-          <div class="history-label">Ayer</div>
-          <a href="proyecto.html" class="history-item">
-            <div class="history-item-icon" style="background:#4A3728"></div>
-            Almacén Automático
-          </a>
-        </div>
-
-        <div class="history-section">
-          <div class="history-label">30 días anteriores</div>
-          <a href="proyecto.html" class="history-item">
-            <div class="history-item-icon" style="background:#1A3A5C"></div>
-            Base Submarina
-          </a>
-          <a href="proyecto.html" class="history-item">
-            <div class="history-item-icon" style="background:#4A4A4A"></div>
-            Muros de la ciudad
           </a>
         </div>
       </div>
@@ -57,7 +33,7 @@
           <div class="avatar">AK</div>
           <div style="flex:1; min-width:0;">
             <div style="font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Antony Kevin</div>
-            <div class="text-xs text-muted">Programación 2023-2026</div>
+            <div class="text-xs text-muted">Programación</div>
           </div>
         </div>
       </div>
@@ -88,7 +64,7 @@
                 <div class="text-xs text-muted">Programación</div>
               </div>
               
-              <button class="dropdown-item" onclick="alert('Área de oportunidad: subir foto al servidor (POST /api/usuario/foto)')">
+              <button class="dropdown-item" id="btnCambiarFoto">
                 Cambiar foto de perfil
               </button>
               
@@ -117,15 +93,17 @@
         <div class="stats-row" style="margin-bottom:var(--pad-lg)">
           <div class="stat-card">
             <div class="stat-label">Proyectos totales</div>
-            <div class="stat-value accent" id="statProyectos">5</div>
+            <div class="stat-value accent" id="statProyectos">0</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Materiales calculados</div>
-            <div class="stat-value gold" id="statMateriales">1,824</div>
+            <div class="stat-value gold" id="statMateriales">0</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Horas de horneado</div>
-            <div class="stat-value green" id="statHoras">12.4</div>
+            <div class="stat-row-sub">
+              <div class="stat-label">Horas de horneado</div>
+              <div class="stat-value green" id="statHoras">0</div>
+            </div>
           </div>
         </div>
 
@@ -148,49 +126,7 @@
               </div>
             </div>
             <div class="project-card-footer">
-              <span class="badge badge-stone">18 stacks ladrillo</span>
-              <span class="text-xs text-muted">→</span>
-            </div>
-          </div>
-
-          <div class="project-card" onclick="window.location.href='proyecto.html'">
-            <div class="project-card-header">
-              <div class="pixel-block block-iron project-block-icon" style="--block-img: url('IMG/iron_block.png');"></div>
-              <div>
-                <div class="project-card-name">Granja de Hierro</div>
-                <div class="project-card-meta">Modificado ayer</div>
-              </div>
-            </div>
-            <div class="project-card-footer">
-              <span class="badge badge-diamond">Redstone</span>
-              <span class="text-xs text-muted">→</span>
-            </div>
-          </div>
-
-          <div class="project-card" onclick="window.location.href='proyecto.html'">
-            <div class="project-card-header">
-              <div class="pixel-block project-block-icon" style="background:#4A3728; --block-img: url('IMG/chest.png');"></div>
-              <div>
-                <div class="project-card-name">Almacén Automático</div>
-                <div class="project-card-meta">Hace 2 días</div>
-              </div>
-            </div>
-            <div class="project-card-footer">
-              <span class="badge badge-gold">Cofres dobles</span>
-              <span class="text-xs text-muted">→</span>
-            </div>
-          </div>
-
-          <div class="project-card" onclick="window.location.href='proyecto.html'">
-            <div class="project-card-header">
-              <div class="pixel-block project-block-icon" style="background:#1A3A5C; --block-img: url('IMG/prismarine.png');"></div>
-              <div>
-                <div class="project-card-name">Base Submarina</div>
-                <div class="project-card-meta">Hace 3 semanas</div>
-              </div>
-            </div>
-            <div class="project-card-footer">
-              <span class="badge badge-redstone">En progreso</span>
+              <span class="badge badge-stone">18 stacks</span>
               <span class="text-xs text-muted">→</span>
             </div>
           </div>
@@ -202,71 +138,49 @@
 
         </div>
 
-        <div class="card" style="margin-top:var(--pad-xl); border-color:rgba(247,201,72,0.2); background:rgba(247,201,72,0.03);">
-          <div class="flex items-center gap-sm mb-md">
-            <span class="badge badge-gold">Área de oportunidad</span>
-            <span class="text-xs text-muted">Backend pendiente</span>
-          </div>
-          <div style="font-size:12px; color:var(--text-secondary); line-height:1.8;">
-            Esta sección cargará los proyectos reales desde el servidor via
-            <code style="background:rgba(255,255,255,0.06); padding:1px 6px; border-radius:2px; font-size:11px;">GET /api/proyectos?usuario_id={id}</code>
-            — tabla <strong>PROYECTO</strong> en MySQL.
-          </div>
-        </div>
-
       </div>
     </div>
 
   </div>
 
-  <script>
+<script>
     // Mostrar/ocultar Sidebar de forma fluida
     document.getElementById('toggleSidebar').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('collapsed');
+        document.getElementById('sidebar').classList.toggle('collapsed');
     });
 
     // Menú de perfil dropdown
     function toggleDropdown() {
-      document.getElementById('profileDropdown').classList.toggle('open');
+        document.getElementById('profileDropdown').classList.toggle('open');
     }
 
     document.addEventListener('click', (e) => {
-      const dd = document.getElementById('profileDropdown');
-      if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+        const dd = document.getElementById('profileDropdown');
+        if (dd && !dd.contains(e.target)) dd.classList.remove('open');
     });
 
-    // Filtrado interactivo en el frontend
-    document.getElementById('searchProjects').addEventListener('input', function() {
-      const q = this.value.toLowerCase();
-      document.querySelectorAll('.project-card:not(.add-card)').forEach(card => {
-        const name = card.querySelector('.project-card-name')?.textContent.toLowerCase() || '';
-        card.style.display = name.includes(q) ? '' : 'none';
-      });
-    });
-
-    function crearProyecto() { window.location.href = 'proyecto.html'; }
-
-    /* ── Lógica de control de estados visuales y persistencia ── */
+    // Lógica de temas globales basados en clases del body
     function setTheme(mode) {
-      // Remover clases previas
-      document.body.classList.remove('colorblind-mode', 'mc-classic-theme');
-      document.querySelectorAll('.dropdown-menu .btn').forEach(b => b.classList.remove('active-theme'));
+        document.body.classList.remove('colorblind-mode', 'mc-classic-theme');
+        document.querySelectorAll('.dropdown-menu .btn').forEach(b => b.classList.remove('active-theme'));
 
-      if (mode === 'colorblind') {
-        document.body.classList.add('colorblind-mode');
-        document.getElementById('theme-blind').classList.add('active-theme');
-      } else if (mode === 'mc') {
-        document.body.classList.add('mc-classic-theme');
-        document.getElementById('theme-mc').classList.add('active-theme');
-      } else {
-        document.getElementById('theme-normal').classList.add('active-theme');
-      }
-      localStorage.setItem('craftlog_theme', mode);
+        if (mode === 'colorblind') {
+            document.body.classList.add('colorblind-mode');
+            document.getElementById('theme-blind').classList.add('active-theme');
+        } else if (mode === 'mc') {
+            document.body.classList.add('mc-classic-theme');
+            document.getElementById('theme-mc').classList.add('active-theme');
+        } else {
+            document.getElementById('theme-normal').classList.add('active-theme');
+        }
+        localStorage.setItem('craftlog_theme', mode);
     }
 
-    // Inicializar el tema guardado en el navegador al abrir la app
+    // Inicializar el tema guardado
     const savedTheme = localStorage.getItem('craftlog_theme') || 'normal';
     setTheme(savedTheme);
-  </script>
+</script>
+
+<script src="JS/dashboard.js"></script>
 </body>
 </html>

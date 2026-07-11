@@ -11,7 +11,6 @@
 
   <div class="auth-page">
 
-    <!-- Brand mark arriba -->
     <a href="index.html" class="navbar-brand" style="text-decoration:none;">
       <div class="brand-icon" aria-hidden="true">
         <div class="brand-icon-pixel dark"></div>
@@ -37,7 +36,6 @@
       </div>
     </a>
 
-    <!-- Auth box -->
     <div class="auth-box animate-in">
       <h1 class="auth-title">Bienvenido de vuelta</h1>
       <p class="auth-sub">Ingresa tus datos para continuar</p>
@@ -68,7 +66,6 @@
           >
         </div>
 
-        <!-- TODO: backend — POST /api/auth/login con {usuario, password} -->
         <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:8px;">
           Entrar al juego
         </button>
@@ -89,41 +86,6 @@
 
   </div>
 
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const user = document.getElementById('loginUser').value;
-      const pass = document.getElementById('loginPass').value;
-      if (!user || !pass) return;
-      // TODO: Aquí va el puente para conectar con la base de datos.
-// Cuando el usuario le dé a "Entrar", este código va a mandar el usuario y 
-// la contraseña a nuestra base de datos (MySQL/Java) para ver si coinciden.
-// Si los datos son correctos, guardamos que la sesión está abierta y 
-// saltamos automáticamente a la pantalla del panel (dashboard.html).
-// Ejemplo de cómo se conectan: fetch('/api/auth/login', { method:'POST', body: JSON.stringify({usuario:user, password:pass}) })
-      console.log('[Backend TODO] Login con:', user);
-      // Simulación — redirige al dashboard
-      window.location.href = 'dashboard.html';
-    });
-  </script>
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-    
-      const usuarioTemporal = "admin";
-      const passTemporal = "123456";
-
-      const user = document.getElementById('loginUser').value;
-      const pass = document.getElementById('loginPass').value;
-
-      if (user === usuarioTemporal && pass === passTemporal) {
-        alert("Acceso concedido");
-        window.location.href = 'dashboard.html';
-      } else {
-        alert("Usuario o contraseña incorrectos");
-      }
-    });
-  </script>
-
+  <script src="JS/login.js"></script>
 </body>
 </html>

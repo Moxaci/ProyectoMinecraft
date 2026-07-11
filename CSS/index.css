@@ -206,36 +206,37 @@
   background-position: center;
   background-repeat: no-repeat;
   
-  /* Aquí está la magia: Usa la variable del HTML o ninguna si no existe */
-  background-image: var(--block-img, none); 
+  /* ELIMINAMOS background-image: var(--block-img, none); de aquí */
 }
+
 /* Clases específicas: El background-color entra si la url falla o no existe */
 .block-stone {
   background-color: var(--mc-stone);
-  background-image: url('../img/blocks/stone.png');
+  background-image: url('../img/stone.png');
 }
 
 .block-iron {
   background-color: var(--mc-iron);
-  background-image: url('../img/blocks/iron_block.png');
+  background-image: url('../img/iron.png');
 }
 
 .block-gold {
   background-color: var(--mc-gold);
-  background-image: url('../img/blocks/gold_block.png');
-}
-
-.block-diamond {
-  background-color: var(--mc-diamond);
-  background-image: url('../img/blocks/diamond_block.png');
-}
-
-.block-grass {
-  background-color: var(--mc-grass);
-  background-image: url('../img/blocks/grass_block_side.png');
+  background-image: url('../img/gold.png');
 }
 
 .block-wood {
   background-color: var(--mc-wood);
-  background-image: url('../img/blocks/oak_log.png');
+  background-image: url('../img/oak_wood.png');
+}
+
+/* Agregamos los que te faltaban en las clases individuales */
+.block-brick { 
+  background-color: #9c4c44; 
+  background-image: url('../img/brick.png'); /* Asegúrate de que se llame así en tu carpeta */
+}
+
+.block-diamond-ore { 
+  background-color: #7f7f7f; 
+  background-image: url('../img/diamond_ore.png'); /* Asegúrate de que se llame así */
 }
