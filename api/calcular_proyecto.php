@@ -1,6 +1,5 @@
 <?php
-// api/calcular_proyecto.php
-// Calcula los materiales totales de un proyecto
+// Calcula los materiales totales de un proyecto restando el inventario
 
 session_start();
 require_once __DIR__ . '/../includes/config.php';
@@ -21,17 +20,19 @@ if ($proyectoId <= 0) {
 
 $conn = getConnection();
 
-// Calcular materiales
-$resultado = calcularMateriales($conn, $proyectoId, $usuarioId);
+// Usar la nueva función con inventario
+$resultado = calcularMaterialesConInventario($conn, $proyectoId, $usuarioId);
 closeConnection($conn);
 
 if ($resultado === null) {
     sendErrorResponse('Proyecto no encontrado o no autorizado', 404);
 }
 
-// Obtener nombres de los items
+// Asegurar que todos los materiales tengan nombre
 foreach ($resultado['materiales'] as &$material) {
-    $material['nombre'] = getItemNombre($conn, $material['id_item']);
+    if (!isset($material['nombre']) || empty($material['nombre'])) {
+        $material['nombre'] = getItemNombre($conn, $material['id_item']);
+    }
 }
 
 sendSuccessResponse([

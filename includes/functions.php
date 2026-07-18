@@ -561,4 +561,115 @@ function updateProyectoNombre($conn, $proyectoId, $usuarioId, $nombre) {
     $stmt->bind_param("sii", $nombre, $proyectoId, $usuarioId);
     return $stmt->execute();
 }
+
+/**
+ * Obtiene el inventario de un usuario
+ */
+function getInventarioUsuario($conn, $usuarioId) {
+    $stmt = $conn->prepare("
+        SELECT 
+            iu.id_item,
+            i.nombre,
+            i.imagen,
+            iu.cantidad,
+            i.stack_max
+        FROM inventario_usuario iu
+        JOIN item i ON iu.id_item = i.id_item
+        WHERE iu.id_usuario = ?
+        ORDER BY i.nombre
+    ");
+    $stmt->bind_param("i", $usuarioId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $inventario = [];
+    while ($row = $result->fetch_assoc()) {
+        $inventario[] = $row;
+    }
+    return $inventario;
+}
+
+/**
+ * Actualiza el inventario de un usuario (agrega o actualiza cantidad)
+ */
+function updateInventarioUsuario($conn, $usuarioId, $itemId, $cantidad) {
+    if ($cantidad <= 0) {
+        // Si cantidad es 0 o negativa, eliminar del inventario
+        $stmt = $conn->prepare("DELETE FROM inventario_usuario WHERE id_usuario = ? AND id_item = ?");
+        $stmt->bind_param("is", $usuarioId, $itemId);
+        return $stmt->execute();
+    }
+    
+    // Verificar si ya existe
+    $stmt = $conn->prepare("SELECT cantidad FROM inventario_usuario WHERE id_usuario = ? AND id_item = ?");
+    $stmt->bind_param("is", $usuarioId, $itemId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($result->num_rows > 0) {
+        // Actualizar
+        $stmt = $conn->prepare("UPDATE inventario_usuario SET cantidad = ? WHERE id_usuario = ? AND id_item = ?");
+        $stmt->bind_param("iis", $cantidad, $usuarioId, $itemId);
+    } else {
+        // Insertar
+        $stmt = $conn->prepare("INSERT INTO inventario_usuario (id_usuario, id_item, cantidad) VALUES (?, ?, ?)");
+        $stmt->bind_param("isi", $usuarioId, $itemId, $cantidad);
+    }
+    
+    return $stmt->execute();
+}
+
+/**
+ * Calcula los materiales necesarios restando el inventario
+ */
+function calcularMaterialesConInventario($conn, $proyectoId, $usuarioId) {
+    // Primero calcular los materiales totales del proyecto
+    $resultado = calcularMateriales($conn, $proyectoId, $usuarioId);
+    if (!$resultado) return null;
+    
+    // Obtener inventario del usuario
+    $inventario = getInventarioUsuario($conn, $usuarioId);
+    $inventarioMap = [];
+    foreach ($inventario as $item) {
+        $inventarioMap[$item['id_item']] = $item['cantidad'];
+    }
+    
+    // Restar inventario a los materiales calculados
+    $materialesFinales = [];
+    foreach ($resultado['materiales'] as $material) {
+        $id = $material['id_item'];
+        $cantidad = $material['cantidad'];
+        $disponible = $inventarioMap[$id] ?? 0;
+        
+        $necesario = max(0, $cantidad - $disponible);
+        $materialesFinales[] = [
+            'id_item' => $id,
+            'nombre' => $material['nombre'],
+            'cantidad' => $necesario,
+            'cantidad_original' => $cantidad,
+            'disponible' => $disponible,
+            'stack_max' => $material['stack_max'] ?? 64
+        ];
+    }
+    
+    // Recalcular stacks
+    $stacksFinales = [];
+    foreach ($materialesFinales as $m) {
+        $stackMax = $m['stack_max'];
+        $stacksFinales[$m['id_item']] = [
+            'id_item' => $m['id_item'],
+            'cantidad' => $m['cantidad'],
+            'stacks' => floor($m['cantidad'] / $stackMax),
+            'resto' => $m['cantidad'] % $stackMax,
+            'stack_max' => $stackMax
+        ];
+    }
+    
+    return [
+        'materiales' => $materialesFinales,
+        'stacks' => $stacksFinales,
+        'tiempo_total' => $resultado['tiempo_total'],
+        'inventario_usado' => count(array_filter($inventarioMap, function($v) { return $v > 0; }))
+    ];
+}
 ?>
