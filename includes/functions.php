@@ -345,13 +345,22 @@ function getProyectoItems($conn, $proyectoId, $usuarioId) {
         WHERE pd.id_proyecto = ?
         ORDER BY i.nombre
     ");
+    if (!$stmt) return null;
+    
     $stmt->bind_param("i", $proyectoId);
     $stmt->execute();
     $result = $stmt->get_result();
     
     $items = [];
     while ($row = $result->fetch_assoc()) {
-        $items[] = $row;
+        $items[] = [
+            'id_item' => $row['id_item'],
+            'nombre' => $row['nombre'],
+            'imagen' => $row['imagen'],
+            'stack_max' => intval($row['stack_max']),
+            'es_base' => intval($row['es_base']),
+            'cantidad' => intval($row['cantidad'])
+        ];
     }
     return $items;
 }
@@ -451,18 +460,23 @@ function descomponerItem($conn, $itemId, $cantidad, $profundidad = 0) {
     if ($profundidad > 10) return [];
     
     $resultado = [];
+    $cantidad = intval($cantidad);
     
     // Verificar si es un item base
     $stmt = $conn->prepare("SELECT es_base FROM item WHERE id_item = ?");
+    if (!$stmt) return [];
+    
     $stmt->bind_param("s", $itemId);
     $stmt->execute();
     $result = $stmt->get_result();
     $item = $result->fetch_assoc();
     
-    if ($item && $item['es_base']) {
-        // Es un item base, agregarlo directamente
+    if ($item && intval($item['es_base']) === 1) {
+        // Es un item base, agregarlo directamente con su nombre
+        $nombre = getItemNombre($conn, $itemId);
         $resultado[$itemId] = [
             'id_item' => $itemId,
+            'nombre' => $nombre,
             'cantidad' => $cantidad,
             'tiempo' => 0
         ];
@@ -476,14 +490,18 @@ function descomponerItem($conn, $itemId, $cantidad, $profundidad = 0) {
         JOIN ingrediente_receta ir ON r.id_receta = ir.id_receta
         WHERE r.id_item_resultado = ?
     ");
+    if (!$stmt) return [];
+    
     $stmt->bind_param("s", $itemId);
     $stmt->execute();
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
         // No hay receta, tratarlo como item base
+        $nombre = getItemNombre($conn, $itemId);
         $resultado[$itemId] = [
             'id_item' => $itemId,
+            'nombre' => $nombre,
             'cantidad' => $cantidad,
             'tiempo' => 0
         ];
@@ -493,19 +511,19 @@ function descomponerItem($conn, $itemId, $cantidad, $profundidad = 0) {
     // Procesar receta
     $recetas = [];
     while ($row = $result->fetch_assoc()) {
-        $recetas[$row['id_receta']]['resultado'] = $row['cantidad_resultado'];
+        $recetas[$row['id_receta']]['resultado'] = intval($row['cantidad_resultado']);
         $recetas[$row['id_receta']]['ingredientes'][] = [
             'id_item' => $row['id_item_ingred'],
-            'cantidad' => $row['cantidad']
+            'cantidad' => intval($row['cantidad'])
         ];
     }
     
     // Tomar la primera receta (simplificado)
     $receta = reset($recetas);
-    $factor = $cantidad / $receta['resultado'];
+    $factor = $cantidad / intval($receta['resultado']);
     
     foreach ($receta['ingredientes'] as $ingrediente) {
-        $cantidadIngrediente = $ingrediente['cantidad'] * $factor;
+        $cantidadIngrediente = intval($ingrediente['cantidad']) * $factor;
         $subItems = descomponerItem($conn, $ingrediente['id_item'], $cantidadIngrediente, $profundidad + 1);
         
         foreach ($subItems as $id => $data) {
@@ -623,53 +641,67 @@ function updateInventarioUsuario($conn, $usuarioId, $itemId, $cantidad) {
  * Calcula los materiales necesarios restando el inventario
  */
 function calcularMaterialesConInventario($conn, $proyectoId, $usuarioId) {
-    // Primero calcular los materiales totales del proyecto
-    $resultado = calcularMateriales($conn, $proyectoId, $usuarioId);
-    if (!$resultado) return null;
-    
-    // Obtener inventario del usuario
-    $inventario = getInventarioUsuario($conn, $usuarioId);
-    $inventarioMap = [];
-    foreach ($inventario as $item) {
-        $inventarioMap[$item['id_item']] = $item['cantidad'];
-    }
-    
-    // Restar inventario a los materiales calculados
-    $materialesFinales = [];
-    foreach ($resultado['materiales'] as $material) {
-        $id = $material['id_item'];
-        $cantidad = $material['cantidad'];
-        $disponible = $inventarioMap[$id] ?? 0;
+    try {
+        // Primero calcular los materiales totales del proyecto
+        $resultado = calcularMateriales($conn, $proyectoId, $usuarioId);
+        if (!$resultado) {
+            return null;
+        }
         
-        $necesario = max(0, $cantidad - $disponible);
-        $materialesFinales[] = [
-            'id_item' => $id,
-            'nombre' => $material['nombre'],
-            'cantidad' => $necesario,
-            'cantidad_original' => $cantidad,
-            'disponible' => $disponible,
-            'stack_max' => $material['stack_max'] ?? 64
+        // Obtener inventario del usuario
+        $inventario = getInventarioUsuario($conn, $usuarioId);
+        $inventarioMap = [];
+        foreach ($inventario as $item) {
+            $inventarioMap[$item['id_item']] = intval($item['cantidad']);
+        }
+        
+        // Restar inventario a los materiales calculados
+        $materialesFinales = [];
+        foreach ($resultado['materiales'] as $material) {
+            $id = $material['id_item'];
+            $cantidad = intval($material['cantidad']);
+            $disponible = isset($inventarioMap[$id]) ? intval($inventarioMap[$id]) : 0;
+            
+            // OBTENER EL NOMBRE DE LA BASE DE DATOS
+            $nombre = getItemNombre($conn, $id);
+            
+            $necesario = max(0, $cantidad - $disponible);
+            $materialesFinales[] = [
+                'id_item' => $id,
+                'nombre' => $nombre, // Usar el nombre de la BD
+                'cantidad' => $necesario,
+                'cantidad_original' => $cantidad,
+                'disponible' => $disponible,
+                'stack_max' => isset($material['stack_max']) ? intval($material['stack_max']) : 64,
+                'tiempo' => isset($material['tiempo']) ? intval($material['tiempo']) : 0
+            ];
+        }
+        
+        // Recalcular stacks
+        $stacksFinales = [];
+        foreach ($materialesFinales as $m) {
+            $stackMax = intval($m['stack_max']);
+            $cantidad = intval($m['cantidad']);
+            $stacksFinales[$m['id_item']] = [
+                'id_item' => $m['id_item'],
+                'nombre' => $m['nombre'], // Incluir nombre también aquí
+                'cantidad' => $cantidad,
+                'stacks' => intval(floor($cantidad / $stackMax)),
+                'resto' => $cantidad % $stackMax,
+                'stack_max' => $stackMax
+            ];
+        }
+        
+        return [
+            'materiales' => $materialesFinales,
+            'stacks' => $stacksFinales,
+            'tiempo_total' => isset($resultado['tiempo_total']) ? intval($resultado['tiempo_total']) : 0,
+            'inventario_usado' => count(array_filter($inventarioMap, function($v) { return $v > 0; }))
         ];
+        
+    } catch (Exception $e) {
+        error_log("Error en calcularMaterialesConInventario: " . $e->getMessage());
+        return null;
     }
-    
-    // Recalcular stacks
-    $stacksFinales = [];
-    foreach ($materialesFinales as $m) {
-        $stackMax = $m['stack_max'];
-        $stacksFinales[$m['id_item']] = [
-            'id_item' => $m['id_item'],
-            'cantidad' => $m['cantidad'],
-            'stacks' => floor($m['cantidad'] / $stackMax),
-            'resto' => $m['cantidad'] % $stackMax,
-            'stack_max' => $stackMax
-        ];
-    }
-    
-    return [
-        'materiales' => $materialesFinales,
-        'stacks' => $stacksFinales,
-        'tiempo_total' => $resultado['tiempo_total'],
-        'inventario_usado' => count(array_filter($inventarioMap, function($v) { return $v > 0; }))
-    ];
 }
 ?>

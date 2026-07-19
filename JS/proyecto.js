@@ -1,16 +1,17 @@
 /**
  * CraftLog - Módulo de Proyecto
  * Maneja la carga, edición, inventario y cálculo de proyectos
+ * VERSIÓN COMPLETA CON IMÁGENES Y NOMBRES DE LA BD
  */
 
 let proyectoId = null;
 let itemsDisponibles = [];
 let itemsProyecto = [];
-let inventarioUsuario = {}; // { itemId: cantidad }
+let inventarioUsuario = {};
 let usuarioActual = null;
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Cargar información del usuario (para el avatar)
+    // 1. Cargar información del usuario
     cargarInfoUsuario();
 
     // 2. Obtener ID del proyecto de la URL
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 4. Configurar renombre del proyecto (Enter para guardar)
+    // 4. Configurar renombre del proyecto
     const titleInput = document.getElementById('projectTitle');
     if (titleInput) {
         titleInput.addEventListener('keydown', function(e) {
@@ -69,9 +70,10 @@ document.addEventListener('DOMContentLoaded', function() {
     cargarCatalogo();
 });
 
-/**
- * Carga la información del usuario para el avatar y dropdown
- */
+// ============================================================
+// FUNCIONES DE USUARIO Y AUTENTICACIÓN
+// ============================================================
+
 function cargarInfoUsuario() {
     fetch('/ProyectoM/api/usuario_info.php', {
         method: 'GET',
@@ -95,11 +97,7 @@ function cargarInfoUsuario() {
     });
 }
 
-/**
- * Actualiza el avatar y dropdown con la info del usuario
- */
 function actualizarAvatar(usuario) {
-    // Avatar (iniciales)
     const avatarBtn = document.getElementById('avatarBtn');
     if (avatarBtn) {
         const iniciales = getIniciales(usuario.nombre);
@@ -107,22 +105,17 @@ function actualizarAvatar(usuario) {
         avatarBtn.style.background = generarColorAvatar(usuario.nombre);
     }
 
-    // Dropdown - nombre
     const dropdownName = document.getElementById('dropdownUserName');
     if (dropdownName) {
         dropdownName.textContent = usuario.nombre;
     }
 
-    // Dropdown - email
     const dropdownEmail = document.getElementById('dropdownUserEmail');
     if (dropdownEmail) {
         dropdownEmail.textContent = usuario.correo;
     }
 }
 
-/**
- * Obtiene las iniciales de un nombre
- */
 function getIniciales(nombre) {
     return nombre
         .split(' ')
@@ -131,9 +124,6 @@ function getIniciales(nombre) {
         .join('');
 }
 
-/**
- * Genera un color consistente para el avatar basado en el nombre
- */
 function generarColorAvatar(nombre) {
     let hash = 0;
     for (let i = 0; i < nombre.length; i++) {
@@ -143,11 +133,11 @@ function generarColorAvatar(nombre) {
     return colores[Math.abs(hash) % colores.length];
 }
 
-/**
- * Crea un nuevo proyecto con modal estilo VS Code
- */
+// ============================================================
+// CREACIÓN DE PROYECTOS
+// ============================================================
+
 function crearNuevoProyecto() {
-    // Crear overlay
     const overlay = document.createElement('div');
     overlay.style.cssText = `
         position: fixed;
@@ -279,9 +269,6 @@ function crearNuevoProyecto() {
     });
 }
 
-/**
- * Crea el proyecto desde el modal
- */
 function crearProyectoDesdeModal(nombre, overlay) {
     const errorEl = document.getElementById('errorNombreProyecto');
     errorEl.style.display = 'none';
@@ -314,7 +301,12 @@ function crearProyectoDesdeModal(nombre, overlay) {
         },
         body: params
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             proyectoId = data.id_proyecto;
@@ -333,17 +325,18 @@ function crearProyectoDesdeModal(nombre, overlay) {
         }
     })
     .catch(error => {
-        errorEl.textContent = '❌ Error al conectar con el servidor';
+        console.error('Error detallado:', error);
+        errorEl.textContent = '❌ Error al conectar con el servidor: ' + error.message;
         errorEl.style.display = 'block';
         btnCrear.disabled = false;
         btnCrear.textContent = '✨ Crear proyecto';
-        console.error(error);
     });
 }
 
-/**
- * Carga los datos del proyecto
- */
+// ============================================================
+// CARGA DE DATOS (Proyecto, Inventario, Catálogo)
+// ============================================================
+
 function cargarProyecto() {
     fetch(`/ProyectoM/api/proyecto_detalle.php?id=${proyectoId}`, {
         method: 'GET',
@@ -354,6 +347,9 @@ function cargarProyecto() {
             window.location.href = 'login.html';
             return;
         }
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         return response.json();
     })
     .then(data => {
@@ -362,31 +358,38 @@ function cargarProyecto() {
             itemsProyecto = data.proyecto.items || [];
             renderizarLista(itemsProyecto);
             actualizarTotales();
+            
+            document.querySelectorAll('.block-item').forEach(el => {
+                const existe = itemsProyecto.some(p => p.id_item === el.dataset.id);
+                if (existe) el.classList.add('selected');
+            });
         } else if (data && data.error) {
             mostrarError(data.error);
         }
     })
     .catch(error => {
         console.error('Error al cargar proyecto:', error);
-        mostrarError('Error al cargar el proyecto');
+        mostrarError('Error al cargar el proyecto: ' + error.message);
     });
 }
 
-/**
- * Carga el inventario del usuario desde el servidor
- */
 function cargarInventarioUsuario() {
     fetch('/ProyectoM/api/inventario_usuario.php', {
         method: 'GET',
         credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data && data.success) {
             inventarioUsuario = {};
             if (data.inventario) {
                 data.inventario.forEach(item => {
-                    inventarioUsuario[item.id_item] = parseInt(item.cantidad);
+                    inventarioUsuario[item.id_item] = parseInt(item.cantidad) || 0;
                 });
             }
             renderizarInventario();
@@ -397,9 +400,126 @@ function cargarInventarioUsuario() {
     });
 }
 
-/**
- * Renderiza el inventario del usuario
- */
+function cargarCatalogo() {
+    fetch('/ProyectoM/api/items.php', {
+        method: 'GET',
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data && data.success) {
+            itemsDisponibles = data.items;
+            renderizarCatalogo(itemsDisponibles);
+            renderizarInventario();
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar catálogo:', error);
+    });
+}
+
+// ============================================================
+// RENDERIZADO DE COMPONENTES (CON IMÁGENES)
+// ============================================================
+
+function renderizarCatalogo(items) {
+    const grid = document.getElementById('blocksGrid');
+    if (!grid) return;
+
+    grid.innerHTML = '';
+
+    items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'block-item';
+        div.dataset.id = item.id_item;
+        div.dataset.name = item.nombre.toLowerCase();
+
+        const existe = itemsProyecto.some(p => p.id_item === item.id_item);
+        if (existe) div.classList.add('selected');
+
+        // Usar la imagen de la base de datos o un color de fallback
+        const imagenUrl = item.imagen || '';
+        const color = obtenerColorItem(item.id_item);
+
+        div.innerHTML = `
+            <div style="width: 40px; height: 40px; border-radius: 4px; flex-shrink:0; overflow: hidden; border: 1px solid var(--border);">
+                ${imagenUrl ? 
+                    `<img src="${imagenUrl}" alt="${item.nombre}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
+                    `<div style="width: 100%; height: 100%; background: ${color};"></div>`
+                }
+            </div>
+            <span class="block-name">${item.nombre}</span>
+            <div style="font-size:10px; color:var(--text-muted);">${item.stack_max || 64}/stack</div>
+        `;
+
+        div.addEventListener('click', function() {
+            toggleItemProyecto(item.id_item, item.nombre);
+        });
+
+        grid.appendChild(div);
+    });
+}
+
+function renderizarLista(items) {
+    const list = document.getElementById('summaryList');
+    if (!list) return;
+
+    list.innerHTML = '';
+
+    if (!items || items.length === 0) {
+        list.innerHTML = `
+            <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
+                <div style="font-size:24px; margin-bottom:8px;">📦</div>
+                No hay items en este proyecto<br>
+                Haz clic en un bloque del catálogo
+            </div>
+        `;
+        return;
+    }
+
+    items.forEach(item => {
+        const li = document.createElement('li');
+        li.className = 'summary-item';
+        li.dataset.id = item.id_item;
+
+        // Buscar la imagen del item en el catálogo
+        const itemInfo = itemsDisponibles.find(i => i.id_item === item.id_item);
+        const imagenUrl = itemInfo ? itemInfo.imagen : '';
+        const color = obtenerColorItem(item.id_item);
+
+        li.innerHTML = `
+            <div class="summary-item-info">
+                <div style="width: 24px; height: 24px; border-radius: 3px; flex-shrink:0; overflow: hidden; border: 1px solid var(--border);">
+                    ${imagenUrl ? 
+                        `<img src="${imagenUrl}" alt="${item.nombre}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
+                        `<div style="width: 100%; height: 100%; background: ${color};"></div>`
+                    }
+                </div>
+                <span class="summary-item-name">${item.nombre}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 4px;">
+                <button class="qty-btn" onclick="cambiarCantidad('${item.id_item}', -1)">−</button>
+                <input type="number" 
+                       value="${item.cantidad}" 
+                       min="1" 
+                       step="1"
+                       style="width: 60px; text-align: center; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 3px; color: var(--text); padding: 4px 2px; font-family: var(--font-pixel); font-size: var(--fs-pixel-sm);"
+                       onchange="editarCantidad('${item.id_item}', this)"
+                       onfocus="this.select()">
+                <button class="qty-btn" onclick="cambiarCantidad('${item.id_item}', 1)">+</button>
+                <button onclick="quitarItem('${item.id_item}')" class="btn btn-ghost btn-sm" style="padding:0 4px; font-size:16px; color:var(--text-red);">×</button>
+            </div>
+        `;
+
+        list.appendChild(li);
+    });
+}
+
 function renderizarInventario() {
     const container = document.getElementById('inventarioPreview');
     if (!container) return;
@@ -413,8 +533,14 @@ function renderizarInventario() {
     container.innerHTML = '';
     keys.forEach(itemId => {
         const cantidad = inventarioUsuario[itemId];
+        if (cantidad <= 0) {
+            delete inventarioUsuario[itemId];
+            return;
+        }
+        
         const item = itemsDisponibles.find(i => i.id_item === itemId);
         const nombre = item ? item.nombre : itemId;
+        const imagenUrl = item ? item.imagen : '';
         const color = obtenerColorItem(itemId);
 
         const badge = document.createElement('span');
@@ -430,7 +556,12 @@ function renderizarInventario() {
             font-size: 11px;
         `;
         badge.innerHTML = `
-            <span style="display: inline-block; width: 12px; height: 12px; background: ${color}; border-radius: 2px;"></span>
+            <span style="display: inline-block; width: 16px; height: 16px; border-radius: 2px; overflow: hidden; border: 1px solid var(--border); flex-shrink:0;">
+                ${imagenUrl ? 
+                    `<img src="${imagenUrl}" alt="${nombre}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
+                    `<div style="width: 100%; height: 100%; background: ${color};"></div>`
+                }
+            </span>
             ${nombre} ×${cantidad}
             <button onclick="quitarDelInventario('${itemId}')" style="background: none; border: none; color: var(--text-red); cursor: pointer; font-size: 14px; padding: 0 2px;">×</button>
         `;
@@ -438,100 +569,192 @@ function renderizarInventario() {
     });
 }
 
-/**
- * Agrega un item al inventario del usuario
- */
-function agregarAlInventario(itemId, cantidad) {
+// ============================================================
+// MANEJO DE ITEMS DEL PROYECTO
+// ============================================================
+
+function toggleItemProyecto(itemId, itemNombre) {
+    const existe = itemsProyecto.some(p => p.id_item === itemId);
+
+    if (existe) {
+        quitarItem(itemId);
+    } else {
+        const params = new URLSearchParams({
+            proyecto_id: proyectoId,
+            item_id: itemId,
+            cantidad: 1
+        });
+
+        fetch('/ProyectoM/api/agregar_item.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                cargarProyecto();
+                document.querySelectorAll('.block-item').forEach(el => {
+                    if (el.dataset.id === itemId) el.classList.add('selected');
+                });
+                mostrarFeedback('✅ Item agregado', 'success');
+            }
+        })
+        .catch(error => {
+            console.error('Error al agregar item:', error);
+            mostrarFeedback('❌ Error al agregar item', 'error');
+        });
+    }
+}
+
+function cambiarCantidad(itemId, delta) {
+    const item = itemsProyecto.find(p => p.id_item === itemId);
+    if (!item) return;
+
+    let nuevaCantidad = Math.max(0, item.cantidad + delta);
+    
+    if (nuevaCantidad <= 0) {
+        quitarItem(itemId);
+        return;
+    }
+
+    actualizarCantidadEnServidor(itemId, nuevaCantidad);
+}
+
+function editarCantidad(itemId, input) {
+    const nuevaCantidad = parseInt(input.value);
+    if (isNaN(nuevaCantidad) || nuevaCantidad < 0) {
+        const item = itemsProyecto.find(p => p.id_item === itemId);
+        if (item) input.value = item.cantidad;
+        return;
+    }
+
+    if (nuevaCantidad === 0) {
+        quitarItem(itemId);
+        return;
+    }
+
+    const item = itemsProyecto.find(p => p.id_item === itemId);
+    if (!item) return;
+
+    if (nuevaCantidad === item.cantidad) return;
+
+    actualizarCantidadEnServidor(itemId, nuevaCantidad);
+}
+
+function actualizarCantidadEnServidor(itemId, nuevaCantidad) {
     const params = new URLSearchParams({
+        proyecto_id: proyectoId,
         item_id: itemId,
-        cantidad: cantidad
+        cantidad: nuevaCantidad
     });
 
-    fetch('/ProyectoM/api/inventario_agregar.php', {
+    fetch('/ProyectoM/api/actualizar_item.php', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            if (inventarioUsuario[itemId]) {
-                inventarioUsuario[itemId] += cantidad;
-            } else {
-                inventarioUsuario[itemId] = cantidad;
+            const item = itemsProyecto.find(p => p.id_item === itemId);
+            if (item) {
+                item.cantidad = nuevaCantidad;
+                renderizarLista(itemsProyecto);
+                actualizarTotales();
             }
-            renderizarInventario();
-            mostrarFeedback('✅ Material agregado al inventario', 'success');
         } else {
-            mostrarFeedback('❌ ' + (data.error || 'Error al agregar'), 'error');
+            mostrarFeedback('❌ Error al actualizar cantidad', 'error');
+            cargarProyecto();
         }
     })
     .catch(error => {
-        mostrarFeedback('❌ Error al agregar al inventario', 'error');
-        console.error(error);
+        console.error('Error al actualizar cantidad:', error);
+        mostrarFeedback('❌ Error al actualizar cantidad', 'error');
+        cargarProyecto();
     });
 }
 
-/**
- * Quita un item del inventario del usuario
- */
-function quitarDelInventario(itemId) {
+function quitarItem(itemId) {
     const params = new URLSearchParams({
+        proyecto_id: proyectoId,
         item_id: itemId
     });
 
-    fetch('/ProyectoM/api/inventario_quitar.php', {
+    fetch('/ProyectoM/api/quitar_item.php', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            delete inventarioUsuario[itemId];
-            renderizarInventario();
-            mostrarFeedback('🗑️ Material eliminado del inventario', 'info');
+            itemsProyecto = itemsProyecto.filter(p => p.id_item !== itemId);
+            renderizarLista(itemsProyecto);
+            actualizarTotales();
+            document.querySelectorAll('.block-item').forEach(el => {
+                if (el.dataset.id === itemId) el.classList.remove('selected');
+            });
+            mostrarFeedback('🗑️ Item eliminado', 'info');
         }
     })
-    .catch(error => console.error(error));
+    .catch(error => {
+        console.error('Error al quitar item:', error);
+        mostrarFeedback('❌ Error al eliminar item', 'error');
+    });
 }
 
-/**
- * Limpia todo el inventario del usuario
- */
-function limpiarInventario() {
-    if (Object.keys(inventarioUsuario).length === 0) return;
-    if (!confirm('¿Eliminar todos los materiales de tu inventario?')) return;
+function limpiarLista() {
+    if (itemsProyecto.length === 0) return;
+    if (!confirm('¿Eliminar todos los items de este proyecto?')) return;
 
-    fetch('/ProyectoM/api/inventario_limpiar.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({ _method: 'DELETE' })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            inventarioUsuario = {};
-            renderizarInventario();
-            mostrarFeedback('🧹 Inventario limpiado', 'info');
-        }
-    })
-    .catch(error => console.error(error));
+    const promises = itemsProyecto.map(item => {
+        const params = new URLSearchParams({
+            proyecto_id: proyectoId,
+            item_id: item.id_item
+        });
+        return fetch('/ProyectoM/api/quitar_item.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        });
+    });
+
+    Promise.all(promises)
+        .then(() => {
+            itemsProyecto = [];
+            renderizarLista(itemsProyecto);
+            actualizarTotales();
+            document.querySelectorAll('.block-item').forEach(el => el.classList.remove('selected'));
+            mostrarFeedback('🧹 Lista limpiada', 'info');
+        })
+        .catch(error => console.error(error));
 }
 
-/**
- * Muestra un modal para agregar materiales al inventario
- */
+// ============================================================
+// MANEJO DEL INVENTARIO
+// ============================================================
+
 function mostrarModalAgregarInventario() {
-    // Esperar a que los items estén cargados
     if (itemsDisponibles.length === 0) {
         mostrarFeedback('⏳ Cargando catálogo...', 'info');
+        cargarCatalogo();
+        setTimeout(() => mostrarModalAgregarInventario(), 500);
         return;
     }
 
@@ -563,7 +786,6 @@ function mostrarModalAgregarInventario() {
         animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     `;
 
-    // Generar opciones de items
     let optionsHtml = '';
     itemsDisponibles.forEach(item => {
         optionsHtml += `<option value="${item.id_item}">${item.nombre}</option>`;
@@ -663,265 +885,103 @@ function mostrarModalAgregarInventario() {
     });
 }
 
-/**
- * Carga el catálogo de items disponibles
- */
-function cargarCatalogo() {
-    fetch('/ProyectoM/api/items.php', {
-        method: 'GET',
-        credentials: 'same-origin'
+function agregarAlInventario(itemId, cantidad) {
+    const params = new URLSearchParams({
+        item_id: itemId,
+        cantidad: cantidad
+    });
+
+    fetch('/ProyectoM/api/inventario_agregar.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: params
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
-        if (data && data.success) {
-            itemsDisponibles = data.items;
-            renderizarCatalogo(itemsDisponibles);
-            // Actualizar inventario con los nombres
+        if (data.success) {
+            if (inventarioUsuario[itemId]) {
+                inventarioUsuario[itemId] += cantidad;
+            } else {
+                inventarioUsuario[itemId] = cantidad;
+            }
             renderizarInventario();
+            mostrarFeedback('✅ Material agregado al inventario', 'success');
+        } else {
+            mostrarFeedback('❌ ' + (data.error || 'Error al agregar'), 'error');
         }
     })
     .catch(error => {
-        console.error('Error al cargar catálogo:', error);
+        mostrarFeedback('❌ Error al agregar al inventario', 'error');
+        console.error(error);
     });
 }
 
-/**
- * Renderiza el catálogo de bloques
- */
-function renderizarCatalogo(items) {
-    const grid = document.getElementById('blocksGrid');
-    if (!grid) return;
-
-    grid.innerHTML = '';
-
-    items.forEach(item => {
-        const div = document.createElement('div');
-        div.className = 'block-item';
-        div.dataset.id = item.id_item;
-        div.dataset.name = item.nombre.toLowerCase();
-
-        const existe = itemsProyecto.some(p => p.id_item === item.id_item);
-        if (existe) div.classList.add('selected');
-
-        const color = obtenerColorItem(item.id_item);
-
-        div.innerHTML = `
-            <div style="width: 32px; height: 32px; background: ${color}; border-radius: 4px; flex-shrink:0;"></div>
-            <span class="block-name">${item.nombre}</span>
-            <div style="font-size:10px; color:var(--text-muted);">${item.stack_max || 64}/stack</div>
-        `;
-
-        div.addEventListener('click', function() {
-            toggleItemProyecto(item.id_item, item.nombre);
-        });
-
-        grid.appendChild(div);
-    });
-}
-
-/**
- * Agrega o quita un item del proyecto
- */
-function toggleItemProyecto(itemId, itemNombre) {
-    const existe = itemsProyecto.some(p => p.id_item === itemId);
-
-    if (existe) {
-        const params = new URLSearchParams({
-            proyecto_id: proyectoId,
-            item_id: itemId
-        });
-
-        fetch('/ProyectoM/api/quitar_item.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                itemsProyecto = itemsProyecto.filter(p => p.id_item !== itemId);
-                renderizarLista(itemsProyecto);
-                actualizarTotales();
-                document.querySelectorAll('.block-item').forEach(el => {
-                    if (el.dataset.id === itemId) el.classList.remove('selected');
-                });
-                mostrarFeedback('🗑️ Item eliminado', 'info');
-            }
-        })
-        .catch(error => console.error(error));
-    } else {
-        const cantidad = 64;
-        const params = new URLSearchParams({
-            proyecto_id: proyectoId,
-            item_id: itemId,
-            cantidad: cantidad
-        });
-
-        fetch('/ProyectoM/api/agregar_item.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Recargar items del proyecto
-                cargarProyecto();
-                document.querySelectorAll('.block-item').forEach(el => {
-                    if (el.dataset.id === itemId) el.classList.add('selected');
-                });
-                mostrarFeedback('✅ Item agregado', 'success');
-            }
-        })
-        .catch(error => console.error(error));
-    }
-}
-
-/**
- * Renderiza la lista de items del proyecto
- */
-function renderizarLista(items) {
-    const list = document.getElementById('summaryList');
-    if (!list) return;
-
-    list.innerHTML = '';
-
-    if (!items || items.length === 0) {
-        list.innerHTML = `
-            <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">
-                <div style="font-size:24px; margin-bottom:8px;">📦</div>
-                No hay items en este proyecto<br>
-                Haz clic en un bloque del catálogo
-            </div>
-        `;
-        return;
-    }
-
-    items.forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'summary-item';
-        li.dataset.id = item.id_item;
-
-        const color = obtenerColorItem(item.id_item);
-
-        li.innerHTML = `
-            <div class="summary-item-info">
-                <div style="width:20px; height:20px; background:${color}; border-radius:3px; flex-shrink:0;"></div>
-                <span class="summary-item-name">${item.nombre}</span>
-            </div>
-            <div class="qty-controls">
-                <button class="qty-btn" onclick="cambiarCantidad('${item.id_item}', -64)">−</button>
-                <span class="qty-number">${item.cantidad}</span>
-                <button class="qty-btn" onclick="cambiarCantidad('${item.id_item}', 64)">+</button>
-            </div>
-            <button onclick="quitarItem('${item.id_item}')" class="btn btn-ghost btn-sm" style="padding:0 4px; font-size:16px; color:var(--text-red);">×</button>
-        `;
-
-        list.appendChild(li);
-    });
-}
-
-/**
- * Cambia la cantidad de un item
- */
-function cambiarCantidad(itemId, delta) {
-    const item = itemsProyecto.find(p => p.id_item === itemId);
-    if (!item) return;
-
-    let nuevaCantidad = item.cantidad + delta;
-    if (nuevaCantidad <= 0) {
-        quitarItem(itemId);
-        return;
-    }
-
+function quitarDelInventario(itemId) {
     const params = new URLSearchParams({
-        proyecto_id: proyectoId,
-        item_id: itemId,
-        cantidad: nuevaCantidad
-    });
-
-    fetch('/ProyectoM/api/actualizar_item.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            item.cantidad = nuevaCantidad;
-            renderizarLista(itemsProyecto);
-            actualizarTotales();
-        }
-    })
-    .catch(error => console.error(error));
-}
-
-/**
- * Quita un item del proyecto
- */
-function quitarItem(itemId) {
-    const params = new URLSearchParams({
-        proyecto_id: proyectoId,
         item_id: itemId
     });
 
-    fetch('/ProyectoM/api/quitar_item.php', {
+    fetch('/ProyectoM/api/inventario_quitar.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
         body: params
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            itemsProyecto = itemsProyecto.filter(p => p.id_item !== itemId);
-            renderizarLista(itemsProyecto);
-            actualizarTotales();
-            document.querySelectorAll('.block-item').forEach(el => {
-                if (el.dataset.id === itemId) el.classList.remove('selected');
-            });
+            delete inventarioUsuario[itemId];
+            renderizarInventario();
+            mostrarFeedback('🗑️ Material eliminado del inventario', 'info');
         }
     })
     .catch(error => console.error(error));
 }
 
-/**
- * Renombra el proyecto
- */
-function renombrarProyecto(nuevoNombre) {
-    if (!nuevoNombre || nuevoNombre.trim().length < 3) {
-        mostrarFeedback('⚠️ El nombre debe tener al menos 3 caracteres', 'error');
-        cargarProyecto();
-        return;
-    }
+function limpiarInventario() {
+    if (Object.keys(inventarioUsuario).length === 0) return;
+    if (!confirm('¿Eliminar todos los materiales de tu inventario?')) return;
 
-    const params = new URLSearchParams({
-        proyecto_id: proyectoId,
-        nombre: nuevoNombre.trim()
-    });
-
-    fetch('/ProyectoM/api/renombrar_proyecto.php', {
+    fetch('/ProyectoM/api/inventario_limpiar.php', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: new URLSearchParams({ _method: 'DELETE' })
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            mostrarFeedback('✅ Nombre actualizado', 'success');
-        } else {
-            mostrarFeedback('❌ ' + (data.error || 'Error al renombrar'), 'error');
-            cargarProyecto();
+            inventarioUsuario = {};
+            renderizarInventario();
+            mostrarFeedback('🧹 Inventario limpiado', 'info');
         }
     })
-    .catch(error => {
-        mostrarFeedback('❌ Error al renombrar', 'error');
-        cargarProyecto();
-    });
+    .catch(error => console.error(error));
 }
 
-/**
- * Calcula los materiales del proyecto (restando inventario)
- */
+// ============================================================
+// CÁLCULO DEL PROYECTO (VERSIÓN CON DEBUG)
+// ============================================================
+
 function calcularProyecto() {
     if (itemsProyecto.length === 0) {
         mostrarFeedback('⚠️ Agrega items a la lista primero', 'error');
@@ -932,40 +992,57 @@ function calcularProyecto() {
     btn.textContent = '⏳ Calculando...';
     btn.disabled = true;
 
+    console.log('📊 Calculando proyecto ID:', proyectoId);
+    console.log('📦 Items en proyecto:', itemsProyecto);
+
     fetch(`/ProyectoM/api/calcular_proyecto.php?id=${proyectoId}`, {
         method: 'GET',
         credentials: 'same-origin'
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('📡 Respuesta del servidor - Status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.text();
+    })
+    .then(text => {
+        console.log('📄 Respuesta raw:', text);
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('❌ Error al parsear JSON:', e);
+            console.log('📄 Texto que causó el error:', text);
+            throw new Error('La respuesta del servidor no es un JSON válido');
+        }
+    })
     .then(data => {
         btn.textContent = '⬡ Calcular proyecto';
         btn.disabled = false;
 
+        console.log('✅ Datos recibidos:', data);
+
         if (data && data.success) {
-            // Aplicar descuento del inventario
             const resultadoConDescuento = aplicarDescuentoInventario(data.resultado);
             mostrarResultado(resultadoConDescuento);
         } else if (data && data.error) {
             mostrarFeedback('❌ ' + data.error, 'error');
+        } else {
+            mostrarFeedback('❌ Respuesta inválida del servidor', 'error');
         }
     })
     .catch(error => {
         btn.textContent = '⬡ Calcular proyecto';
         btn.disabled = false;
+        console.error('❌ Error completo:', error);
         mostrarFeedback('❌ Error al calcular: ' + error.message, 'error');
-        console.error(error);
     });
 }
 
-/**
- * Aplica el descuento del inventario a los materiales calculados
- */
 function aplicarDescuentoInventario(resultado) {
     const materiales = resultado.materiales;
-    const stacks = resultado.stacks;
-    let tiempoTotal = resultado.tiempo_total;
-
-    // Clonar materiales
+    
     const materialesDescontados = materiales.map(m => ({
         ...m,
         cantidad: m.cantidad,
@@ -974,11 +1051,11 @@ function aplicarDescuentoInventario(resultado) {
         tieneDescuento: false
     }));
 
-    // Aplicar descuento
     materialesDescontados.forEach(m => {
         const id = m.id_item;
-        if (inventarioUsuario[id] && inventarioUsuario[id] > 0) {
-            const cantidadInventario = inventarioUsuario[id];
+        const cantidadInventario = parseInt(inventarioUsuario[id]) || 0;
+        
+        if (cantidadInventario > 0) {
             const descuento = Math.min(cantidadInventario, m.cantidad);
             m.cantidad = Math.max(0, m.cantidad - descuento);
             m.descontado = descuento;
@@ -986,7 +1063,6 @@ function aplicarDescuentoInventario(resultado) {
         }
     });
 
-    // Recalcular stacks
     const stacksDescontados = {};
     materialesDescontados.forEach(m => {
         const stackMax = m.stack_max || 64;
@@ -1000,7 +1076,6 @@ function aplicarDescuentoInventario(resultado) {
         };
     });
 
-    // Recalcular tiempo total
     let tiempoDescontado = 0;
     materialesDescontados.forEach(m => {
         if (m.cantidad > 0 && m.original > 0) {
@@ -1018,14 +1093,10 @@ function aplicarDescuentoInventario(resultado) {
     };
 }
 
-/**
- * Muestra el resultado del cálculo con descuentos aplicados
- */
 function mostrarResultado(resultado) {
     const materiales = resultado.materiales;
     const stacks = resultado.stacks;
     const tiempoTotal = resultado.tiempo_total;
-    const tieneDescuento = resultado.tieneDescuento;
 
     const overlay = document.createElement('div');
     overlay.style.cssText = `
@@ -1057,7 +1128,6 @@ function mostrarResultado(resultado) {
         animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     `;
 
-    // Encabezado con indicador de descuento
     let headerExtra = '';
     if (resultado.inventarioUsado) {
         headerExtra = `
@@ -1070,34 +1140,72 @@ function mostrarResultado(resultado) {
         `;
     }
 
+    const materialesFiltrados = materiales.filter(m => m.cantidad > 0);
+    const materialesCero = materiales.filter(m => m.cantidad === 0 && m.tieneDescuento);
+
+    // Crear HTML para los materiales con imágenes
+    let materialesHTML = '';
+    materialesFiltrados.forEach(m => {
+        const stackInfo = stacks[m.id_item] || {};
+        const stacksCompletos = stackInfo.stacks || 0;
+        const resto = stackInfo.resto || 0;
+        const stackMax = stackInfo.stack_max || 64;
+        const descuento = m.descontado || 0;
+        const tieneDesc = m.tieneDescuento && descuento > 0;
+        
+        // Buscar la imagen del item
+        const itemInfo = itemsDisponibles.find(i => i.id_item === m.id_item);
+        const imagenUrl = itemInfo ? itemInfo.imagen : '';
+        const color = obtenerColorItem(m.id_item);
+        
+        materialesHTML += `
+            <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--border);">
+                <div style="width: 32px; height: 32px; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); flex-shrink:0;">
+                    ${imagenUrl ? 
+                        `<img src="${imagenUrl}" alt="${m.nombre}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
+                        `<div style="width: 100%; height: 100%; background: ${color};"></div>`
+                    }
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 500;">${m.nombre}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">
+                        ${formatearNumero(m.cantidad)} unidades
+                        ${tieneDesc ? `(${formatearNumero(descuento)} de tu inventario)` : ''}
+                        ${stacksCompletos > 0 || resto > 0 ? `→ ${stacksCompletos} stacks + ${resto} unidades` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    // Materiales que ya tienes (cantidad 0)
+    let materialesCeroHTML = '';
+    materialesCero.forEach(m => {
+        const itemInfo = itemsDisponibles.find(i => i.id_item === m.id_item);
+        const imagenUrl = itemInfo ? itemInfo.imagen : '';
+        const color = obtenerColorItem(m.id_item);
+        
+        materialesCeroHTML += `
+            <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; opacity: 0.7;">
+                <div style="width: 24px; height: 24px; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); flex-shrink:0;">
+                    ${imagenUrl ? 
+                        `<img src="${imagenUrl}" alt="${m.nombre}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
+                        `<div style="width: 100%; height: 100%; background: ${color};"></div>`
+                    }
+                </div>
+                <span>✓ ${m.nombre} (${formatearNumero(m.original)} necesarios, ya los tienes)</span>
+            </div>
+        `;
+    });
+
     modal.innerHTML = `
         <div style="font-family:var(--font-pixel); font-size:8px; color:var(--mc-gold); letter-spacing:1px; margin-bottom:8px;">
             📊 RESULTADO DEL CÁLCULO
         </div>
         ${headerExtra}
-        <div style="margin-bottom: 16px; max-height: 350px; overflow-y: auto; font-size: 13px; line-height: 1.8; font-family: monospace;">
-            ${materiales.map(m => {
-                const stackInfo = stacks[m.id_item] || {};
-                const stacksCompletos = stackInfo.stacks || 0;
-                const resto = stackInfo.resto || 0;
-                const stackMax = stackInfo.stack_max || 64;
-                const descuento = m.descontado || 0;
-                const tieneDesc = m.tieneDescuento && descuento > 0;
-                
-                let texto = `📦 ${m.nombre}\n`;
-                texto += `   Total: ${formatearNumero(m.cantidad)} unidades`;
-                if (tieneDesc) {
-                    texto += ` (${formatearNumero(descuento)} de tu inventario)`;
-                }
-                texto += `\n`;
-                if (stacksCompletos > 0 || resto > 0) {
-                    texto += `   → ${stacksCompletos} stacks + ${resto} unidades (${stackMax}/stack)\n`;
-                }
-                if (m.cantidad === 0 && tieneDesc) {
-                    texto += `   ✅ ¡Ya tienes suficientes materiales!\n`;
-                }
-                return texto;
-            }).join('\n')}
+        <div style="margin-bottom: 16px; max-height: 350px; overflow-y: auto;">
+            ${materialesHTML}
+            ${materialesCeroHTML ? `<div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">✅ Materiales que ya tienes:</div>${materialesCeroHTML}` : ''}
         </div>
         <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:8px;">
             <div style="display:flex; justify-content:space-between; font-size:13px;">
@@ -1139,39 +1247,51 @@ function mostrarResultado(resultado) {
     });
 }
 
-/**
- * Limpia la lista de items del proyecto
- */
-function limpiarLista() {
-    if (itemsProyecto.length === 0) return;
-    if (!confirm('¿Eliminar todos los items de este proyecto?')) return;
+// ============================================================
+// RENOMBRAR PROYECTO
+// ============================================================
 
-    const promises = itemsProyecto.map(item => {
-        const params = new URLSearchParams({
-            proyecto_id: proyectoId,
-            item_id: item.id_item
-        });
-        return fetch('/ProyectoM/api/quitar_item.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: params
-        });
+function renombrarProyecto(nuevoNombre) {
+    if (!nuevoNombre || nuevoNombre.trim().length < 3) {
+        mostrarFeedback('⚠️ El nombre debe tener al menos 3 caracteres', 'error');
+        cargarProyecto();
+        return;
+    }
+
+    const params = new URLSearchParams({
+        proyecto_id: proyectoId,
+        nombre: nuevoNombre.trim()
     });
 
-    Promise.all(promises)
-        .then(() => {
-            itemsProyecto = [];
-            renderizarLista(itemsProyecto);
-            actualizarTotales();
-            document.querySelectorAll('.block-item').forEach(el => el.classList.remove('selected'));
-            mostrarFeedback('🧹 Lista limpiada', 'info');
-        })
-        .catch(error => console.error(error));
+    fetch('/ProyectoM/api/renombrar_proyecto.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: params
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            mostrarFeedback('✅ Nombre actualizado', 'success');
+        } else {
+            mostrarFeedback('❌ ' + (data.error || 'Error al renombrar'), 'error');
+            cargarProyecto();
+        }
+    })
+    .catch(error => {
+        mostrarFeedback('❌ Error al renombrar', 'error');
+        cargarProyecto();
+    });
 }
 
-/**
- * Actualiza los totales en el footer
- */
+// ============================================================
+// UTILIDADES
+// ============================================================
+
 function actualizarTotales() {
     let total = 0;
     itemsProyecto.forEach(item => {
@@ -1185,9 +1305,6 @@ function actualizarTotales() {
     document.getElementById('countBadge').textContent = count + (count === 1 ? ' item' : ' items');
 }
 
-/**
- * Filtra el catálogo por búsqueda
- */
 function filtrarBloques(query) {
     const q = query.toLowerCase().trim();
     document.querySelectorAll('.block-item').forEach(el => {
@@ -1196,9 +1313,6 @@ function filtrarBloques(query) {
     });
 }
 
-/**
- * Obtiene un color según el ID del item
- */
 function obtenerColorItem(itemId) {
     const colores = {
         'iron_ore': '#C8A87C',
@@ -1214,16 +1328,10 @@ function obtenerColorItem(itemId) {
     return colores[itemId] || colores['default'];
 }
 
-/**
- * Formatea un número con separadores
- */
 function formatearNumero(num) {
     return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-/**
- * Muestra un feedback visual (toast)
- */
 function mostrarFeedback(mensaje, tipo = 'info') {
     const toast = document.createElement('div');
     toast.style.cssText = `
@@ -1252,9 +1360,6 @@ function mostrarFeedback(mensaje, tipo = 'info') {
     }, 3000);
 }
 
-/**
- * Mostrar error (usa feedback)
- */
 function mostrarError(mensaje) {
     mostrarFeedback('❌ ' + mensaje, 'error');
 }
