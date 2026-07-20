@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Proyecto — CraftLog</title>
+  <link rel="icon" type="image/png" href="img/Logo.png">
   <link rel="stylesheet" href="CSS/base.css">
   <link rel="stylesheet" href="CSS/workspace.css">
 </head>
@@ -15,17 +16,6 @@
       
       <!-- ========== SIDEBAR ========== -->
       <aside class="sidebar" id="sidebar" style="width: 240px; background: var(--bg-card); border-right: 1px solid var(--border-strong); display: flex; flex-direction: column; transition: width 0.3s;">
-        <div style="padding: 16px;">
-          <button class="btn btn-secondary" style="width: 100%;" id="btnNuevoProyecto">
-            + Nuevo Proyecto
-          </button>
-        </div>
-        <div style="flex: 1; padding: 0 16px; overflow-y: auto;">
-          <div style="font-family: var(--font-pixel); font-size: 7px; color: var(--text-muted); margin-bottom: 8px;">Reciente</div>
-          <div id="sidebarRecientes">
-            <!-- Se llena con JS -->
-          </div>
-        </div>
         <div style="padding: 16px; border-top: 1px solid var(--border-strong);">
           <a href="dashboard.html" style="font-size: var(--fs-body); color: var(--text-muted);">← Mis proyectos</a>
         </div>
@@ -55,7 +45,6 @@
 
           <!-- Derecha: botones + perfil -->
           <div class="flex items-center gap-sm">
-            <button class="btn btn-primary" id="btnCalcular">⬡ Calcular</button>
             <button class="btn btn-secondary btn-sm" id="togglePanel">Lista ◀</button>
             
             <!-- Perfil con avatar dinámico -->
@@ -69,7 +58,7 @@
                   <div class="text-xs text-muted" id="dropdownUserEmail">correo@ejemplo.com</div>
                 </div>
                 <div class="dropdown-sep"></div>
-                <a href="dashboard.html" class="dropdown-item">📊 Dashboard</a>
+                <a href="dashboard.html" class="dropdown-item">Dashboard</a>
                 <a href="login.html" class="dropdown-item danger" style="color: #ff5555;">Cerrar sesión</a>
               </div>
             </div>
@@ -89,7 +78,7 @@
             <div class="card" style="margin-bottom: 16px; border-color: var(--mc-gold); background: rgba(247, 201, 72, 0.03);">
               <div class="flex items-center justify-between mb-md">
                 <span style="font-family: var(--font-pixel); font-size: 7px; color: var(--text-muted);">
-                  🎒 Tu inventario
+                  Tu inventario
                 </span>
                 <div style="display: flex; gap: 6px;">
                   <button class="btn btn-ghost btn-sm" id="btnAgregarInventario" style="font-size: 11px;">+ Agregar</button>
@@ -100,11 +89,11 @@
                 <span style="color: var(--text-muted); font-size: 12px;">No has agregado materiales a tu inventario</span>
               </div>
               <div style="margin-top: 8px; font-size: 11px; color: var(--text-muted);">
-                💡 Los materiales que tengas se restarán automáticamente al calcular
+                Los materiales que tengas se restarán automáticamente al calcular
               </div>
             </div>
 
-            <div class="catalog-section-title">📦 Catálogo de bloques</div>
+            <div class="catalog-section-title"> Catálogo de bloques</div>
             <div class="blocks-grid" id="blocksGrid">
               <!-- Se llena con JS -->
             </div>
@@ -113,7 +102,7 @@
           <!-- PANEL DE LISTA A CALCULAR -->
           <aside class="summary-panel" id="summaryPanel">
             <div class="summary-header">
-              <span class="summary-title">📋 A calcular</span>
+              <span class="summary-title">A calcular</span>
               <span class="badge badge-diamond" id="countBadge">0 items</span>
             </div>
 
@@ -132,13 +121,13 @@
               </div>
               <div class="pixel-divider" style="margin: 8px 0;"><span></span></div>
               <button class="btn btn-primary" id="btnCalcularProyecto">⬡ Calcular proyecto</button>
-              <button class="btn btn-secondary btn-sm" id="btnLimpiar">🧹 Limpiar lista</button>
+              <button class="btn btn-secondary btn-sm" id="btnLimpiar">Limpiar lista</button>
             </div>
           </aside>
 
           <!-- Botón flotante para mostrar panel (cuando está colapsado) -->
           <button class="btn btn-primary hidden" id="showPanelBtn" onclick="showPanel()" style="position: absolute; bottom: 24px; right: 24px; z-index: 50;">
-            📋 Lista ▶
+            Lista ▶
           </button>
 
         </div>
@@ -178,14 +167,14 @@
       const panel = document.getElementById('summaryPanel');
       const showBtn = document.getElementById('showPanelBtn');
       const isCollapsed = panel.classList.toggle('collapsed');
-      document.getElementById('togglePanel').textContent = isCollapsed ? '📋 Lista ▶' : '📋 Lista ◀';
+      document.getElementById('togglePanel').textContent = isCollapsed ? '  Lista ▶' : '  Lista ◀';
       showBtn.classList.toggle('hidden', !isCollapsed);
     });
 
     function showPanel() {
       document.getElementById('summaryPanel').classList.remove('collapsed');
       document.getElementById('showPanelBtn').classList.add('hidden');
-      document.getElementById('togglePanel').textContent = '📋 Lista ◀';
+      document.getElementById('togglePanel').textContent = '  Lista ◀';
     }
 
     // ── DROPDOWN DE PERFIL ──

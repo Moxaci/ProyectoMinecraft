@@ -169,7 +169,7 @@ function crearNuevoProyecto() {
     modal.innerHTML = `
         <div style="margin-bottom:24px;">
             <div style="font-family:var(--font-pixel); font-size:8px; color:var(--text-muted); letter-spacing:1px; margin-bottom:8px;">
-                📁 NUEVO PROYECTO
+                 NUEVO PROYECTO
             </div>
             <div style="font-size:20px; font-weight:600; color:var(--text);">
                 ¿Cómo se llamará tu proyecto?
@@ -227,7 +227,7 @@ function crearNuevoProyecto() {
                 font-weight: 600;
                 transition: all 0.2s;
             ">
-                ✨ Crear proyecto
+                 Crear proyecto
             </button>
         </div>
     `;
@@ -274,20 +274,20 @@ function crearProyectoDesdeModal(nombre, overlay) {
     errorEl.style.display = 'none';
 
     if (!nombre || nombre.trim() === '') {
-        errorEl.textContent = '⚠️ El nombre del proyecto es obligatorio';
+        errorEl.textContent = ' El nombre del proyecto es obligatorio';
         errorEl.style.display = 'block';
         return;
     }
 
     if (nombre.trim().length < 3) {
-        errorEl.textContent = '⚠️ El nombre debe tener al menos 3 caracteres';
+        errorEl.textContent = ' El nombre debe tener al menos 3 caracteres';
         errorEl.style.display = 'block';
         return;
     }
 
     const btnCrear = document.getElementById('btnCrearProyecto');
     btnCrear.disabled = true;
-    btnCrear.textContent = '⏳ Creando...';
+    btnCrear.textContent = 'Creando...';
 
     const params = new URLSearchParams({
         nombre: nombre.trim(),
@@ -316,9 +316,9 @@ function crearProyectoDesdeModal(nombre, overlay) {
             cargarProyecto();
             cargarInventarioUsuario();
             cargarCatalogo();
-            mostrarFeedback('✅ Proyecto creado exitosamente', 'success');
+            mostrarFeedback('Proyecto creado exitosamente', 'success');
         } else {
-            errorEl.textContent = '❌ ' + (data.error || 'No se pudo crear el proyecto');
+            errorEl.textContent = ' ' + (data.error || 'No se pudo crear el proyecto');
             errorEl.style.display = 'block';
             btnCrear.disabled = false;
             btnCrear.textContent = '✨ Crear proyecto';
@@ -326,10 +326,10 @@ function crearProyectoDesdeModal(nombre, overlay) {
     })
     .catch(error => {
         console.error('Error detallado:', error);
-        errorEl.textContent = '❌ Error al conectar con el servidor: ' + error.message;
+        errorEl.textContent = ' Error al conectar con el servidor: ' + error.message;
         errorEl.style.display = 'block';
         btnCrear.disabled = false;
-        btnCrear.textContent = '✨ Crear proyecto';
+        btnCrear.textContent = 'Crear proyecto';
     });
 }
 
@@ -1018,20 +1018,32 @@ function calcularProyecto() {
         }
     })
     .then(data => {
-        btn.textContent = '⬡ Calcular proyecto';
-        btn.disabled = false;
+    btn.textContent = '⬡ Calcular proyecto';
+    btn.disabled = false;
 
-        console.log('✅ Datos recibidos:', data);
-
-        if (data && data.success) {
-            const resultadoConDescuento = aplicarDescuentoInventario(data.resultado);
-            mostrarResultado(resultadoConDescuento);
-        } else if (data && data.error) {
-            mostrarFeedback('❌ ' + data.error, 'error');
-        } else {
-            mostrarFeedback('❌ Respuesta inválida del servidor', 'error');
-        }
-    })
+    console.log('✅ Datos recibidos (RAW):', JSON.stringify(data, null, 2));
+    
+    // 🔥 VERIFICAR qué está llegando del servidor
+    if (data && data.success) {
+        console.log('📦 Materiales del servidor:', data.resultado.materiales);
+        console.log('📦 Cantidad de materiales:', data.resultado.materiales.length);
+        
+        // Mostrar cada material recibido
+        data.resultado.materiales.forEach((m, i) => {
+            console.log(`  ${i+1}. ${m.id_item} (${m.nombre}) x${m.cantidad}`);
+        });
+        
+        const resultadoConDescuento = aplicarDescuentoInventario(data.resultado);
+        console.log('📊 Resultado con descuento:', resultadoConDescuento);
+        console.log('📊 Materiales finales:', resultadoConDescuento.materiales);
+        
+        mostrarResultado(resultadoConDescuento);
+    } else if (data && data.error) {
+        mostrarFeedback('❌ ' + data.error, 'error');
+    } else {
+        mostrarFeedback('❌ Respuesta inválida del servidor', 'error');
+    }
+})
     .catch(error => {
         btn.textContent = '⬡ Calcular proyecto';
         btn.disabled = false;
@@ -1043,7 +1055,27 @@ function calcularProyecto() {
 function aplicarDescuentoInventario(resultado) {
     const materiales = resultado.materiales;
     
-    const materialesDescontados = materiales.map(m => ({
+    // 🔥 PRIMERO: Agrupar materiales por id_item para evitar duplicados
+    const materialesAgrupados = {};
+    materiales.forEach(m => {
+        const id = m.id_item;
+        if (materialesAgrupados[id]) {
+            materialesAgrupados[id].cantidad += m.cantidad;
+            materialesAgrupados[id].tiempo += m.tiempo || 0;
+        } else {
+            materialesAgrupados[id] = {
+                ...m,
+                cantidad: m.cantidad,
+                tiempo: m.tiempo || 0
+            };
+        }
+    });
+    
+    // Convertir a array
+    const materialesUnicos = Object.values(materialesAgrupados);
+    
+    // Aplicar descuento del inventario
+    const materialesDescontados = materialesUnicos.map(m => ({
         ...m,
         cantidad: m.cantidad,
         original: m.cantidad,
@@ -1063,6 +1095,7 @@ function aplicarDescuentoInventario(resultado) {
         }
     });
 
+    // Recalcular stacks
     const stacksDescontados = {};
     materialesDescontados.forEach(m => {
         const stackMax = m.stack_max || 64;
@@ -1076,6 +1109,7 @@ function aplicarDescuentoInventario(resultado) {
         };
     });
 
+    // Calcular tiempo total descontado
     let tiempoDescontado = 0;
     materialesDescontados.forEach(m => {
         if (m.cantidad > 0 && m.original > 0) {
@@ -1087,7 +1121,7 @@ function aplicarDescuentoInventario(resultado) {
     return {
         materiales: materialesDescontados,
         stacks: stacksDescontados,
-        tiempo_total: Math.round(tiempoDescontado),
+        tiempo_total: Math.round(tiempoDescontado || resultado.tiempo_total || 0),
         tieneDescuento: materialesDescontados.some(m => m.tieneDescuento),
         inventarioUsado: Object.keys(inventarioUsuario).length > 0
     };
@@ -1140,8 +1174,31 @@ function mostrarResultado(resultado) {
         `;
     }
 
-    const materialesFiltrados = materiales.filter(m => m.cantidad > 0);
-    const materialesCero = materiales.filter(m => m.cantidad === 0 && m.tieneDescuento);
+    // 🔥 FILTRAR materiales duplicados (agrupar por id_item)
+    const materialesAgrupados = {};
+    materiales.forEach(m => {
+        const id = m.id_item;
+        if (materialesAgrupados[id]) {
+            // Sumar cantidades y tiempos
+            materialesAgrupados[id].cantidad += m.cantidad;
+            materialesAgrupados[id].tiempo += m.tiempo || 0;
+            materialesAgrupados[id].original += m.cantidad_original || 0;
+            materialesAgrupados[id].disponible += m.disponible || 0;
+            materialesAgrupados[id].descontado += m.descontado || 0;
+        } else {
+            materialesAgrupados[id] = {
+                ...m,
+                cantidad: m.cantidad,
+                tiempo: m.tiempo || 0,
+                original: m.cantidad_original || 0,
+                disponible: m.disponible || 0,
+                descontado: m.descontado || 0
+            };
+        }
+    });
+
+    const materialesFiltrados = Object.values(materialesAgrupados).filter(m => m.cantidad > 0);
+    const materialesCero = Object.values(materialesAgrupados).filter(m => m.cantidad === 0 && m.descontado > 0);
 
     // Crear HTML para los materiales con imágenes
     let materialesHTML = '';
@@ -1151,23 +1208,26 @@ function mostrarResultado(resultado) {
         const resto = stackInfo.resto || 0;
         const stackMax = stackInfo.stack_max || 64;
         const descuento = m.descontado || 0;
-        const tieneDesc = m.tieneDescuento && descuento > 0;
+        const tieneDesc = descuento > 0;
         
         // Buscar la imagen del item
         const itemInfo = itemsDisponibles.find(i => i.id_item === m.id_item);
         const imagenUrl = itemInfo ? itemInfo.imagen : '';
         const color = obtenerColorItem(m.id_item);
         
+        // Mostrar el nombre correcto
+        const nombreMostrar = m.nombre || m.id_item;
+        
         materialesHTML += `
             <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--border);">
                 <div style="width: 32px; height: 32px; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); flex-shrink:0;">
                     ${imagenUrl ? 
-                        `<img src="${imagenUrl}" alt="${m.nombre}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
+                        `<img src="${imagenUrl}" alt="${nombreMostrar}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
                         `<div style="width: 100%; height: 100%; background: ${color};"></div>`
                     }
                 </div>
                 <div style="flex: 1;">
-                    <div style="font-weight: 500;">${m.nombre}</div>
+                    <div style="font-weight: 500;">${nombreMostrar}</div>
                     <div style="font-size: 12px; color: var(--text-muted);">
                         ${formatearNumero(m.cantidad)} unidades
                         ${tieneDesc ? `(${formatearNumero(descuento)} de tu inventario)` : ''}
@@ -1184,16 +1244,17 @@ function mostrarResultado(resultado) {
         const itemInfo = itemsDisponibles.find(i => i.id_item === m.id_item);
         const imagenUrl = itemInfo ? itemInfo.imagen : '';
         const color = obtenerColorItem(m.id_item);
+        const nombreMostrar = m.nombre || m.id_item;
         
         materialesCeroHTML += `
             <div style="display: flex; align-items: center; gap: 8px; padding: 4px 0; opacity: 0.7;">
                 <div style="width: 24px; height: 24px; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); flex-shrink:0;">
                     ${imagenUrl ? 
-                        `<img src="${imagenUrl}" alt="${m.nombre}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
+                        `<img src="${imagenUrl}" alt="${nombreMostrar}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
                         `<div style="width: 100%; height: 100%; background: ${color};"></div>`
                     }
                 </div>
-                <span>✓ ${m.nombre} (${formatearNumero(m.original)} necesarios, ya los tienes)</span>
+                <span>✓ ${nombreMostrar} (${formatearNumero(m.original)} necesarios, ya los tienes)</span>
             </div>
         `;
     });
@@ -1204,7 +1265,7 @@ function mostrarResultado(resultado) {
         </div>
         ${headerExtra}
         <div style="margin-bottom: 16px; max-height: 350px; overflow-y: auto;">
-            ${materialesHTML}
+            ${materialesHTML || '<div style="color: var(--text-muted); text-align: center; padding: 20px;">✅ ¡Ya tienes todos los materiales necesarios!</div>'}
             ${materialesCeroHTML ? `<div style="margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">✅ Materiales que ya tienes:</div>${materialesCeroHTML}` : ''}
         </div>
         <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:8px;">
@@ -1214,7 +1275,7 @@ function mostrarResultado(resultado) {
             </div>
             <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
                 <span style="color:var(--text-muted);">📦 Total de stacks necesarios:</span>
-                <span style="font-weight:600;">${Object.values(stacks).reduce((sum, s) => sum + s.stacks, 0)} stacks</span>
+                <span style="font-weight:600;">${Object.values(stacks).reduce((sum, s) => sum + (s.stacks || 0), 0)} stacks</span>
             </div>
             ${resultado.inventarioUsado ? `
             <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px; color: var(--mc-gold);">

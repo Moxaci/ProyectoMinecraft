@@ -20,7 +20,6 @@ function verifyPassword($password, $hash) {
  * Valida que el nombre de usuario sea válido
  */
 function validateUsername($username) {
-    // Solo letras, números y guiones bajos, mínimo 4 caracteres
     return preg_match('/^[a-zA-Z0-9_]{4,20}$/', $username);
 }
 
@@ -73,7 +72,6 @@ function registerUser($conn, $username, $email, $password) {
  * Autentica a un usuario por nombre o correo
  */
 function authenticateUser($conn, $usernameOrEmail, $password) {
-    // Buscar por nombre o correo
     $stmt = $conn->prepare("SELECT id_usuario, nombre, correo, contraseña FROM usuario WHERE nombre = ? OR correo = ?");
     $stmt->bind_param("ss", $usernameOrEmail, $usernameOrEmail);
     $stmt->execute();
@@ -85,9 +83,7 @@ function authenticateUser($conn, $usernameOrEmail, $password) {
     
     $user = $result->fetch_assoc();
     
-    // Verificar contraseña
     if (verifyPassword($password, $user['contraseña'])) {
-        // Iniciar sesión
         session_start();
         $_SESSION['usuario_id'] = $user['id_usuario'];
         $_SESSION['usuario_nombre'] = $user['nombre'];
@@ -160,7 +156,6 @@ function getProyectosByUsuario($conn, $usuarioId) {
  * Obtiene los detalles de un proyecto específico
  */
 function getProyectoDetalle($conn, $proyectoId, $usuarioId) {
-    // Verificar que el proyecto pertenece al usuario
     $stmt = $conn->prepare("
         SELECT id_proyecto, nombre, descripcion, fecha_creacion
         FROM proyecto
@@ -176,7 +171,6 @@ function getProyectoDetalle($conn, $proyectoId, $usuarioId) {
     
     $proyecto = $result->fetch_assoc();
     
-    // Obtener los items del proyecto
     $stmt = $conn->prepare("
         SELECT 
             pd.id_item,
@@ -234,7 +228,6 @@ function agregarItemProyecto($conn, $proyectoId, $itemId, $cantidad) {
  * Elimina un proyecto (solo si pertenece al usuario)
  */
 function eliminarProyecto($conn, $proyectoId, $usuarioId) {
-    // Primero verificar que el proyecto pertenece al usuario
     $stmt = $conn->prepare("SELECT id_proyecto FROM proyecto WHERE id_proyecto = ? AND id_usuario = ?");
     $stmt->bind_param("ii", $proyectoId, $usuarioId);
     $stmt->execute();
@@ -244,12 +237,10 @@ function eliminarProyecto($conn, $proyectoId, $usuarioId) {
         return false;
     }
     
-    // Eliminar detalles del proyecto
     $stmt = $conn->prepare("DELETE FROM proyecto_detalle WHERE id_proyecto = ?");
     $stmt->bind_param("i", $proyectoId);
     $stmt->execute();
     
-    // Eliminar el proyecto
     $stmt = $conn->prepare("DELETE FROM proyecto WHERE id_proyecto = ?");
     $stmt->bind_param("i", $proyectoId);
     return $stmt->execute();
@@ -265,14 +256,12 @@ function getEstadisticas($conn, $usuarioId) {
         'total_hornos' => 0
     ];
     
-    // Total de proyectos
     $stmt = $conn->prepare("SELECT COUNT(*) as total FROM proyecto WHERE id_usuario = ?");
     $stmt->bind_param("i", $usuarioId);
     $stmt->execute();
     $result = $stmt->get_result();
     $estadisticas['total_proyectos'] = $result->fetch_assoc()['total'];
     
-    // Total de materiales calculados
     $stmt = $conn->prepare("
         SELECT SUM(pd.cantidad) as total 
         FROM proyecto_detalle pd
@@ -284,7 +273,6 @@ function getEstadisticas($conn, $usuarioId) {
     $result = $stmt->get_result();
     $estadisticas['total_materiales'] = $result->fetch_assoc()['total'] ?? 0;
     
-    // Total de horas de horneado (estimado: 10 segundos por item * cantidad / 3600)
     $stmt = $conn->prepare("
         SELECT SUM(pd.cantidad * 10) as total_segundos
         FROM proyecto_detalle pd
@@ -321,7 +309,6 @@ function getAllItems($conn) {
  * Obtiene los items de un proyecto
  */
 function getProyectoItems($conn, $proyectoId, $usuarioId) {
-    // Verificar que el proyecto pertenece al usuario
     $stmt = $conn->prepare("SELECT id_proyecto FROM proyecto WHERE id_proyecto = ? AND id_usuario = ?");
     $stmt->bind_param("ii", $proyectoId, $usuarioId);
     $stmt->execute();
@@ -331,7 +318,6 @@ function getProyectoItems($conn, $proyectoId, $usuarioId) {
         return null;
     }
     
-    // Obtener items del proyecto
     $stmt = $conn->prepare("
         SELECT 
             pd.id_item,
@@ -383,7 +369,6 @@ function upsertProyectoItem($conn, $proyectoId, $itemId, $cantidad) {
  */
 function updateProyectoItem($conn, $proyectoId, $itemId, $cantidad) {
     if ($cantidad <= 0) {
-        // Si la cantidad es 0 o negativa, eliminar el item
         $stmt = $conn->prepare("DELETE FROM proyecto_detalle WHERE id_proyecto = ? AND id_item = ?");
         $stmt->bind_param("is", $proyectoId, $itemId);
         return $stmt->execute();
@@ -408,82 +393,104 @@ function removeProyectoItem($conn, $proyectoId, $itemId) {
 }
 
 /**
- * Calcula los materiales totales de un proyecto (recursivo)
+ * Obtiene el nombre de un item por su ID
  */
-function calcularMateriales($conn, $proyectoId, $usuarioId) {
-    // Verificar que el proyecto pertenece al usuario
-    $stmt = $conn->prepare("SELECT id_proyecto FROM proyecto WHERE id_proyecto = ? AND id_usuario = ?");
-    $stmt->bind_param("ii", $proyectoId, $usuarioId);
+function getItemNombre($conn, $itemId) {
+    // Verificar que la conexión existe
+    if (!$conn) {
+        return $itemId; // Fallback: devolver el ID si no hay conexión
+    }
+    
+    $stmt = $conn->prepare("SELECT nombre FROM item WHERE id_item = ?");
+    if (!$stmt) {
+        return $itemId; // Fallback: devolver el ID si la consulta falla
+    }
+    
+    $stmt->bind_param("s", $itemId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        return $row['nombre'];
+    }
+    return $itemId;
+}
+
+/**
+ * Obtiene el tiempo de fundición para un item (SOLO si el item de entrada es base)
+ */
+function getTiempoFundicion($conn, $itemId) {
+    $stmt = $conn->prepare("
+        SELECT f.id_item_entrada, f.tiempo_segundos, i.es_base
+        FROM fundicion f
+        JOIN item i ON f.id_item_entrada = i.id_item
+        WHERE f.id_item_salida = ? AND i.es_base = 1
+        LIMIT 1
+    ");
+    $stmt->bind_param("s", $itemId);
     $stmt->execute();
     $result = $stmt->get_result();
     
-    if ($result->num_rows === 0) {
-        return null;
+    if ($row = $result->fetch_assoc()) {
+        return intval($row['tiempo_segundos']);
     }
-    
-    // Obtener los items del proyecto
-    $items = getProyectoItems($conn, $proyectoId, $usuarioId);
-    if (!$items) return null;
-    
-    $resultado = [];
-    $tiempoTotal = 0;
-    
-    foreach ($items as $item) {
-        $materiales = descomponerItem($conn, $item['id_item'], $item['cantidad']);
-        
-        // Sumar materiales
-        foreach ($materiales as $id => $data) {
-            if (isset($resultado[$id])) {
-                $resultado[$id]['cantidad'] += $data['cantidad'];
-                $resultado[$id]['tiempo'] += $data['tiempo'] ?? 0;
-            } else {
-                $resultado[$id] = $data;
-            }
-        }
-    }
-    
-    // Calcular tiempo total
-    $tiempoTotal = array_sum(array_column($resultado, 'tiempo'));
-    
-    return [
-        'materiales' => array_values($resultado),
-        'tiempo_total' => $tiempoTotal,
-        'stacks' => calcularStacks($resultado)
-    ];
+    return 0;
 }
 
 /**
  * Descompone recursivamente un item en sus materiales base
+ * VERSIÓN CORREGIDA - Maneja correctamente la conexión
  */
 function descomponerItem($conn, $itemId, $cantidad, $profundidad = 0) {
-    // Límite de recursión para evitar bucles infinitos
+    if (!$conn) return [];
     if ($profundidad > 10) return [];
     
-    $resultado = [];
-    $cantidad = intval($cantidad);
+    $cantidad = floatval($cantidad);
+    if ($cantidad <= 0) return [];
     
-    // Verificar si es un item base
+    // Verificar si es base
     $stmt = $conn->prepare("SELECT es_base FROM item WHERE id_item = ?");
     if (!$stmt) return [];
-    
     $stmt->bind_param("s", $itemId);
     $stmt->execute();
     $result = $stmt->get_result();
     $item = $result->fetch_assoc();
     
     if ($item && intval($item['es_base']) === 1) {
-        // Es un item base, agregarlo directamente con su nombre
         $nombre = getItemNombre($conn, $itemId);
-        $resultado[$itemId] = [
-            'id_item' => $itemId,
-            'nombre' => $nombre,
-            'cantidad' => $cantidad,
-            'tiempo' => 0
+        return [
+            $itemId => [
+                'id_item' => $itemId,
+                'nombre' => $nombre,
+                'cantidad' => $cantidad,
+                'tiempo' => 0
+            ]
         ];
-        return $resultado;
     }
     
-    // Buscar recetas para este item
+    // Verificar fundición
+    $stmt = $conn->prepare("
+        SELECT id_item_entrada, tiempo_segundos 
+        FROM fundicion 
+        WHERE id_item_salida = ?
+        LIMIT 1
+    ");
+    if (!$stmt) return [];
+    $stmt->bind_param("s", $itemId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    if ($row = $result->fetch_assoc()) {
+        $itemEntrada = $row['id_item_entrada'];
+        $tiempoPorUnidad = intval($row['tiempo_segundos']);
+        $subItems = descomponerItem($conn, $itemEntrada, $cantidad, $profundidad + 1);
+        
+        foreach ($subItems as $id => &$data) {
+            $data['tiempo'] += $tiempoPorUnidad * $cantidad;
+        }
+        return $subItems;
+    }
+    
+    // Verificar receta
     $stmt = $conn->prepare("
         SELECT r.id_receta, r.cantidad_resultado, ir.id_item_ingred, ir.cantidad
         FROM receta r
@@ -491,44 +498,51 @@ function descomponerItem($conn, $itemId, $cantidad, $profundidad = 0) {
         WHERE r.id_item_resultado = ?
     ");
     if (!$stmt) return [];
-    
     $stmt->bind_param("s", $itemId);
     $stmt->execute();
     $result = $stmt->get_result();
     
     if ($result->num_rows === 0) {
-        // No hay receta, tratarlo como item base
         $nombre = getItemNombre($conn, $itemId);
-        $resultado[$itemId] = [
-            'id_item' => $itemId,
-            'nombre' => $nombre,
-            'cantidad' => $cantidad,
-            'tiempo' => 0
+        return [
+            $itemId => [
+                'id_item' => $itemId,
+                'nombre' => $nombre,
+                'cantidad' => $cantidad,
+                'tiempo' => 0
+            ]
         ];
-        return $resultado;
     }
     
-    // Procesar receta
+    // Procesar receta - AGRUPAR INGREDIENTES
     $recetas = [];
     while ($row = $result->fetch_assoc()) {
-        $recetas[$row['id_receta']]['resultado'] = intval($row['cantidad_resultado']);
-        $recetas[$row['id_receta']]['ingredientes'][] = [
+        $recetaId = $row['id_receta'];
+        if (!isset($recetas[$recetaId])) {
+            $recetas[$recetaId] = [
+                'resultado' => intval($row['cantidad_resultado']),
+                'ingredientes' => []
+            ];
+        }
+        $recetas[$recetaId]['ingredientes'][] = [
             'id_item' => $row['id_item_ingred'],
             'cantidad' => intval($row['cantidad'])
         ];
     }
     
-    // Tomar la primera receta (simplificado)
     $receta = reset($recetas);
-    $factor = $cantidad / intval($receta['resultado']);
+    $ejecuciones = ceil($cantidad / $receta['resultado']);
+    
+    $resultado = [];
     
     foreach ($receta['ingredientes'] as $ingrediente) {
-        $cantidadIngrediente = intval($ingrediente['cantidad']) * $factor;
+        $cantidadIngrediente = $ingrediente['cantidad'] * $ejecuciones;
         $subItems = descomponerItem($conn, $ingrediente['id_item'], $cantidadIngrediente, $profundidad + 1);
         
         foreach ($subItems as $id => $data) {
             if (isset($resultado[$id])) {
                 $resultado[$id]['cantidad'] += $data['cantidad'];
+                $resultado[$id]['tiempo'] += $data['tiempo'] ?? 0;
             } else {
                 $resultado[$id] = $data;
             }
@@ -544,10 +558,13 @@ function descomponerItem($conn, $itemId, $cantidad, $profundidad = 0) {
 function calcularStacks($materiales) {
     $stacks = [];
     foreach ($materiales as $id => $data) {
-        $cantidad = $data['cantidad'];
-        $stackMax = $data['stack_max'] ?? 64;
+        $cantidad = floatval($data['cantidad']);
+        $stackMax = isset($data['stack_max']) ? intval($data['stack_max']) : 64;
+        $nombre = isset($data['nombre']) ? $data['nombre'] : $id;
+        
         $stacks[$id] = [
             'id_item' => $id,
+            'nombre' => $nombre,
             'cantidad' => $cantidad,
             'stacks' => floor($cantidad / $stackMax),
             'resto' => $cantidad % $stackMax,
@@ -558,17 +575,78 @@ function calcularStacks($materiales) {
 }
 
 /**
- * Obtiene el nombre de un item por su ID
+ * Calcula los materiales totales de un proyecto (recursivo)
+ * VERSIÓN DEFINITIVA - Agrupa correctamente usando un array asociativo
  */
-function getItemNombre($conn, $itemId) {
-    $stmt = $conn->prepare("SELECT nombre FROM item WHERE id_item = ?");
-    $stmt->bind_param("s", $itemId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    if ($row = $result->fetch_assoc()) {
-        return $row['nombre'];
+function calcularMateriales($conn, $proyectoId, $usuarioId) {
+    try {
+        // Verificar propiedad del proyecto
+        $stmt = $conn->prepare("SELECT id_proyecto FROM proyecto WHERE id_proyecto = ? AND id_usuario = ?");
+        $stmt->bind_param("ii", $proyectoId, $usuarioId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows === 0) {
+            return null;
+        }
+        
+        // Obtener items del proyecto
+        $items = getProyectoItems($conn, $proyectoId, $usuarioId);
+        if (!$items) return null;
+        
+        // Usar un array asociativo para acumular (clave = id_item)
+        $acumulador = [];
+        
+        // Procesar cada item
+        foreach ($items as $item) {
+            $cantidad = intval($item['cantidad']);
+            $materiales = descomponerItem($conn, $item['id_item'], $cantidad);
+            
+            // Acumular
+            foreach ($materiales as $id => $data) {
+                if (!isset($acumulador[$id])) {
+                    $acumulador[$id] = [
+                        'id_item' => $id,
+                        'nombre' => $data['nombre'] ?? getItemNombre($conn, $id),
+                        'cantidad' => 0,
+                        'tiempo' => 0,
+                        'stack_max' => $data['stack_max'] ?? 64
+                    ];
+                }
+                $acumulador[$id]['cantidad'] += $data['cantidad'];
+                $acumulador[$id]['tiempo'] += $data['tiempo'] ?? 0;
+            }
+        }
+        
+        // Asegurar nombres y stack_max
+        foreach ($acumulador as $id => &$material) {
+            if (empty($material['nombre'])) {
+                $material['nombre'] = getItemNombre($conn, $id);
+            }
+            if (!isset($material['stack_max']) || $material['stack_max'] <= 0) {
+                $material['stack_max'] = 64;
+            }
+        }
+        unset($material); // <--- ¡AQUÍ ESTÁ LA MAGIA! Destruimos la referencia.
+        
+        // Calcular tiempo total
+        $tiempoTotal = 0;
+        foreach ($acumulador as $material) {
+            $tiempoTotal += $material['tiempo'];
+        }
+        
+        // Convertir a array indexado
+        $materialesLista = array_values($acumulador);
+        
+        return [
+            'materiales' => $materialesLista,
+            'tiempo_total' => $tiempoTotal,
+            'stacks' => calcularStacks($acumulador)
+        ];
+        
+    } catch (Exception $e) {
+        error_log("Error en calcularMateriales: " . $e->getMessage());
+        return null;
     }
-    return $itemId;
 }
 
 /**
@@ -612,24 +690,20 @@ function getInventarioUsuario($conn, $usuarioId) {
  */
 function updateInventarioUsuario($conn, $usuarioId, $itemId, $cantidad) {
     if ($cantidad <= 0) {
-        // Si cantidad es 0 o negativa, eliminar del inventario
         $stmt = $conn->prepare("DELETE FROM inventario_usuario WHERE id_usuario = ? AND id_item = ?");
         $stmt->bind_param("is", $usuarioId, $itemId);
         return $stmt->execute();
     }
     
-    // Verificar si ya existe
     $stmt = $conn->prepare("SELECT cantidad FROM inventario_usuario WHERE id_usuario = ? AND id_item = ?");
     $stmt->bind_param("is", $usuarioId, $itemId);
     $stmt->execute();
     $result = $stmt->get_result();
     
     if ($result->num_rows > 0) {
-        // Actualizar
         $stmt = $conn->prepare("UPDATE inventario_usuario SET cantidad = ? WHERE id_usuario = ? AND id_item = ?");
         $stmt->bind_param("iis", $cantidad, $usuarioId, $itemId);
     } else {
-        // Insertar
         $stmt = $conn->prepare("INSERT INTO inventario_usuario (id_usuario, id_item, cantidad) VALUES (?, ?, ?)");
         $stmt->bind_param("isi", $usuarioId, $itemId, $cantidad);
     }
@@ -639,52 +713,162 @@ function updateInventarioUsuario($conn, $usuarioId, $itemId, $cantidad) {
 
 /**
  * Calcula los materiales necesarios restando el inventario
+ * AHORA SOPORTA DESCUENTO DE MATERIALES INTERMEDIOS EN CADA PASO DE DESCOMPOSICIÓN
  */
 function calcularMaterialesConInventario($conn, $proyectoId, $usuarioId) {
     try {
-        // Primero calcular los materiales totales del proyecto
-        $resultado = calcularMateriales($conn, $proyectoId, $usuarioId);
-        if (!$resultado) {
+        // 1. Obtener los items principales del proyecto
+        $stmt = $conn->prepare("
+            SELECT pd.id_item, pd.cantidad
+            FROM proyecto_detalle pd
+            WHERE pd.id_proyecto = ?
+        ");
+        $stmt->bind_param("i", $proyectoId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $itemsRequeridos = [];
+        while ($row = $result->fetch_assoc()) {
+            $itemsRequeridos[$row['id_item']] = floatval($row['cantidad']);
+        }
+        
+        if (empty($itemsRequeridos)) {
             return null;
         }
         
-        // Obtener inventario del usuario
+        // 2. Obtener y mapear el inventario del usuario
         $inventario = getInventarioUsuario($conn, $usuarioId);
         $inventarioMap = [];
+        $inventarioOriginal = []; // Para saber cuántos tipos de items se usaron al final
         foreach ($inventario as $item) {
-            $inventarioMap[$item['id_item']] = intval($item['cantidad']);
+            $inventarioMap[$item['id_item']] = floatval($item['cantidad']);
+            $inventarioOriginal[$item['id_item']] = floatval($item['cantidad']);
         }
         
-        // Restar inventario a los materiales calculados
-        $materialesFinales = [];
-        foreach ($resultado['materiales'] as $material) {
-            $id = $material['id_item'];
-            $cantidad = intval($material['cantidad']);
-            $disponible = isset($inventarioMap[$id]) ? intval($inventarioMap[$id]) : 0;
+        $acumulador = []; 
+        $tiempoTotal = 0;
+        
+        // 3. Procesar la cola de requerimientos nivel por nivel (Iterativo)
+        $procesando = true;
+        $profundidad = 0; // Previene bucles infinitos por recetas mal configuradas en la BD
+        
+        while ($procesando && $profundidad < 15) {
+            $profundidad++;
+            $nuevosRequeridos = [];
+            $procesando = false;
             
-            // OBTENER EL NOMBRE DE LA BASE DE DATOS
-            $nombre = getItemNombre($conn, $id);
-            
-            $necesario = max(0, $cantidad - $disponible);
-            $materialesFinales[] = [
-                'id_item' => $id,
-                'nombre' => $nombre, // Usar el nombre de la BD
-                'cantidad' => $necesario,
-                'cantidad_original' => $cantidad,
-                'disponible' => $disponible,
-                'stack_max' => isset($material['stack_max']) ? intval($material['stack_max']) : 64,
-                'tiempo' => isset($material['tiempo']) ? intval($material['tiempo']) : 0
-            ];
+            foreach ($itemsRequeridos as $id => $cantidadReq) {
+                if ($cantidadReq <= 0) continue;
+                
+                // A. Intentar descontar del inventario ANTES de descomponer
+                if (isset($inventarioMap[$id]) && $inventarioMap[$id] > 0) {
+                    $descontar = min($cantidadReq, $inventarioMap[$id]);
+                    $cantidadReq -= $descontar;
+                    $inventarioMap[$id] -= $descontar;
+                }
+                
+                if ($cantidadReq <= 0) continue; // Si el inventario cubrió todo, pasamos al siguiente item
+                
+                // B. Si aún falta cantidad, evaluar cómo craftearlo/fundirlo
+                $stmt = $conn->prepare("SELECT es_base FROM item WHERE id_item = ?");
+                if ($stmt) {
+                    $stmt->bind_param("s", $id);
+                    $stmt->execute();
+                    $resBase = $stmt->get_result()->fetch_assoc();
+                    $esBase = $resBase ? intval($resBase['es_base']) : 1;
+                } else {
+                    $esBase = 1;
+                }
+                
+                if ($esBase === 1) {
+                    // Es un material base, ya no se puede romper más. Va al resultado final.
+                    if (!isset($acumulador[$id])) {
+                        $acumulador[$id] = ['id_item' => $id, 'cantidad' => 0, 'tiempo' => 0];
+                    }
+                    $acumulador[$id]['cantidad'] += $cantidadReq;
+                } else {
+                    // Intentar descomponer por fundición
+                    $stmt = $conn->prepare("SELECT id_item_entrada, tiempo_segundos FROM fundicion WHERE id_item_salida = ? LIMIT 1");
+                    $stmt->bind_param("s", $id);
+                    $stmt->execute();
+                    $resFundicion = $stmt->get_result()->fetch_assoc();
+                    
+                    if ($resFundicion) {
+                        $itemEntrada = $resFundicion['id_item_entrada'];
+                        $tiempo = intval($resFundicion['tiempo_segundos']) * $cantidadReq;
+                        
+                        if (!isset($nuevosRequeridos[$itemEntrada])) $nuevosRequeridos[$itemEntrada] = 0;
+                        $nuevosRequeridos[$itemEntrada] += $cantidadReq;
+                        $tiempoTotal += $tiempo;
+                        $procesando = true; // Hay nuevos items que revisar en la siguiente vuelta
+                    } else {
+                        // Intentar descomponer por mesa de crafteo (receta)
+                        $stmt = $conn->prepare("
+                            SELECT r.id_receta, r.cantidad_resultado, ir.id_item_ingred, ir.cantidad
+                            FROM receta r
+                            JOIN ingrediente_receta ir ON r.id_receta = ir.id_receta
+                            WHERE r.id_item_resultado = ?
+                        ");
+                        $stmt->bind_param("s", $id);
+                        $stmt->execute();
+                        $resReceta = $stmt->get_result();
+                        
+                        if ($resReceta->num_rows > 0) {
+                            $recetas = [];
+                            while ($row = $resReceta->fetch_assoc()) {
+                                $recetaId = $row['id_receta'];
+                                if (!isset($recetas[$recetaId])) {
+                                    $recetas[$recetaId] = ['resultado' => floatval($row['cantidad_resultado']), 'ingredientes' => []];
+                                }
+                                $recetas[$recetaId]['ingredientes'][] = ['id_item' => $row['id_item_ingred'], 'cantidad' => floatval($row['cantidad'])];
+                            }
+                            $receta = reset($recetas);
+                            
+                            // Calcular cuántas veces hay que hacer la receta para cumplir la cantidad
+                            $ejecuciones = ceil($cantidadReq / $receta['resultado']);
+                            
+                            foreach ($receta['ingredientes'] as $ingrediente) {
+                                $idIng = $ingrediente['id_item'];
+                                $cantIng = $ingrediente['cantidad'] * $ejecuciones;
+                                
+                                if (!isset($nuevosRequeridos[$idIng])) $nuevosRequeridos[$idIng] = 0;
+                                $nuevosRequeridos[$idIng] += $cantIng;
+                            }
+                            $procesando = true; // Hay nuevos items que revisar en la siguiente vuelta
+                        } else {
+                            // Si no es base, pero no tiene receta ni fundición en la BD, lo tratamos como base (Fallback)
+                            if (!isset($acumulador[$id])) {
+                                $acumulador[$id] = ['id_item' => $id, 'cantidad' => 0, 'tiempo' => 0];
+                            }
+                            $acumulador[$id]['cantidad'] += $cantidadReq;
+                        }
+                    }
+                }
+            }
+            // Actualizamos la lista de requerimientos para la siguiente pasada del ciclo
+            $itemsRequeridos = $nuevosRequeridos;
         }
         
-        // Recalcular stacks
+        // 4. Completar datos faltantes para que la vista renderice bien (nombre y stack_max)
+        foreach ($acumulador as $id => &$material) {
+            $material['nombre'] = getItemNombre($conn, $id);
+            $stmt = $conn->prepare("SELECT stack_max FROM item WHERE id_item = ?");
+            $stmt->bind_param("s", $id);
+            $stmt->execute();
+            $resStack = $stmt->get_result()->fetch_assoc();
+            $material['stack_max'] = $resStack ? intval($resStack['stack_max']) : 64;
+            if ($material['stack_max'] <= 0) $material['stack_max'] = 64;
+        }
+        unset($material); // Destruimos la referencia para evitar bugs fantasmas
+        
+        // 5. Formatear salida de Stacks y contabilizar inventario usado
         $stacksFinales = [];
-        foreach ($materialesFinales as $m) {
+        foreach ($acumulador as $id => $m) {
             $stackMax = intval($m['stack_max']);
-            $cantidad = intval($m['cantidad']);
-            $stacksFinales[$m['id_item']] = [
-                'id_item' => $m['id_item'],
-                'nombre' => $m['nombre'], // Incluir nombre también aquí
+            $cantidad = floatval($m['cantidad']);
+            $stacksFinales[$id] = [
+                'id_item' => $id,
+                'nombre' => $m['nombre'],
                 'cantidad' => $cantidad,
                 'stacks' => intval(floor($cantidad / $stackMax)),
                 'resto' => $cantidad % $stackMax,
@@ -692,11 +876,16 @@ function calcularMaterialesConInventario($conn, $proyectoId, $usuarioId) {
             ];
         }
         
+        $inventarioUsado = 0;
+        foreach ($inventarioOriginal as $id => $cantOrig) {
+            if ($inventarioMap[$id] < $cantOrig) $inventarioUsado++;
+        }
+        
         return [
-            'materiales' => $materialesFinales,
+            'materiales' => array_values($acumulador),
             'stacks' => $stacksFinales,
-            'tiempo_total' => isset($resultado['tiempo_total']) ? intval($resultado['tiempo_total']) : 0,
-            'inventario_usado' => count(array_filter($inventarioMap, function($v) { return $v > 0; }))
+            'tiempo_total' => $tiempoTotal,
+            'inventario_usado' => $inventarioUsado
         ];
         
     } catch (Exception $e) {

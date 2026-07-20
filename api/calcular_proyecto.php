@@ -1,5 +1,6 @@
 <?php
 // api/calcular_proyecto.php
+// Calcula los materiales totales de un proyecto restando el inventario
 
 // Activar errores para debug
 ini_set('display_errors', 1);
@@ -45,8 +46,11 @@ try {
         exit;
     }
     
-    // Usar la función calcularMaterialesConInventario
+    // 🔥 IMPORTANTE: Usar la función calcularMaterialesConInventario
+    // NO cerrar la conexión antes de usarla en funciones internas
     $resultado = calcularMaterialesConInventario($conn, $proyectoId, $usuarioId);
+    
+    // Ahora sí cerrar la conexión
     closeConnection($conn);
     
     if ($resultado === null) {
@@ -54,10 +58,10 @@ try {
         exit;
     }
     
-    // Asegurar que todos los materiales tengan nombre (por si acaso)
+    // Asegurar que todos los materiales tengan nombre
     foreach ($resultado['materiales'] as &$material) {
         if (!isset($material['nombre']) || empty($material['nombre'])) {
-            $material['nombre'] = getItemNombre($conn, $material['id_item']);
+            $material['nombre'] = $material['id_item']; // Fallback
         }
     }
     
@@ -67,6 +71,7 @@ try {
     ]);
     
 } catch (Exception $e) {
+    // Log del error
     error_log("Error en calcular_proyecto.php: " . $e->getMessage());
     sendErrorResponse('Error interno del servidor: ' . $e->getMessage(), 500);
 }

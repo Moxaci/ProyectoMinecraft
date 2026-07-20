@@ -21,41 +21,40 @@
   flex-shrink: 0;
 }
 
-/* Comportamiento colapsado para ahorrar pantalla */
+/* ── Sidebar (Menú Izquierdo Unificado) ──────────────────── */
+.sidebar {
+  width: 240px; /* Ancho idéntico al workspace */
+  background-color: var(--bg-card);
+  border-right: 1px solid var(--border-strong); /* Borde más sutil y estructurado */
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
 .sidebar.collapsed {
   width: 0px;
   overflow: hidden;
   border-right-color: transparent;
 }
 
-.sidebar-top {
-  padding: var(--pad-md);
-  border-bottom: 1px solid var(--border);
-}
+/* Puedes eliminar .sidebar-top de tu CSS antiguo ya que ahora usamos estilos en línea */
 
+/* Ajustes de historial para igualar estilo */
 .sidebar-history {
-  flex: 1;
-  overflow-y: auto;
-  padding: var(--pad-md);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+  /* Scrollbar custom nativo ya configurado en tu base.css */
 }
 
-.history-label {
-  font-family: var(--font-pixel);
-  font-size: 7px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
+/* Ya no necesitamos .history-label porque lo pusimos directo en el HTML con tu fuente pixel */
 
 .history-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 6px 10px; /* Padding ligeramente más compacto */
   border-radius: 4px;
   color: var(--text-secondary);
   text-decoration: none;
@@ -69,8 +68,8 @@
 }
 
 .history-item-icon {
-  width: 8px;
-  height: 8px;
+  width: 12px; /* Un bloque ligeramente más grande para que el color destaque mejor */
+  height: 12px;
   border-radius: 2px;
   flex-shrink: 0;
 }
@@ -244,7 +243,7 @@
   color: var(--text);
 }
 .dropdown-item.danger { color: #ff5555; }
-.dropdown-sep { height: 1px; background: var(--border); margin: 4px 0; }
+.dropdown-sep { height: 1px; background: var(--border); margin: 2px 0; }
 
 .flex-col { flex-direction: column; }
 .gap-xs { gap: 4px; }
