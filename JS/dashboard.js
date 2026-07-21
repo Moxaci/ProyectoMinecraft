@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
  * Carga la información del usuario desde la sesión
  */
 function cargarInfoUsuario() {
-    fetch('/ProyectoM/api/usuario_info.php', {
+    fetch('/ProyectoMinecraft/api/usuario_info.php', {
         method: 'GET',
         credentials: 'same-origin'
     })
@@ -110,7 +110,7 @@ function getIniciales(nombre) {
  * Carga los proyectos desde el servidor
  */
 function cargarProyectos() {
-    fetch('/ProyectoM/api/proyectos.php', {
+    fetch('/ProyectoMinecraft/api/proyectos.php', {
         method: 'GET',
         credentials: 'same-origin'
     })
@@ -242,7 +242,7 @@ function renderizarProyectos(proyectos) {
  * Carga las estadísticas desde el servidor
  */
 function cargarEstadisticas() {
-    fetch('/ProyectoM/api/estadisticas.php', {
+    fetch('/ProyectoMinecraft/api/estadisticas.php', {
         method: 'GET',
         credentials: 'same-origin'
     })
@@ -511,7 +511,7 @@ function crearNuevoProyecto(nombre, overlay) {
         descripcion: ''
     });
 
-    fetch('/ProyectoM/api/crear_proyecto.php', {
+    fetch('/ProyectoMinecraft/api/crear_proyecto.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -626,7 +626,7 @@ function eliminarProyecto(id) {
             _method: 'DELETE'
         });
 
-        fetch('/ProyectoM/api/eliminar_proyecto.php', {
+        fetch('/ProyectoMinecraft/api/eliminar_proyecto.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'

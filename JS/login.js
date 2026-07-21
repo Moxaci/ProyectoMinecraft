@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Cambiar la URL al archivo PHP
-        fetch('/ProyectoM/api/login.php', {
+        fetch('/ProyectoMinecraftinecraft/api/login.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'

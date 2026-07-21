@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ============================================================
 
 function cargarInfoUsuario() {
-    fetch('/ProyectoM/api/usuario_info.php', {
+    fetch('/ProyectoMinecraft/api/usuario_info.php', {
         method: 'GET',
         credentials: 'same-origin'
     })
@@ -294,7 +294,7 @@ function crearProyectoDesdeModal(nombre, overlay) {
         descripcion: ''
     });
 
-    fetch('/ProyectoM/api/crear_proyecto.php', {
+    fetch('/ProyectoMinecraft/api/crear_proyecto.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -338,7 +338,7 @@ function crearProyectoDesdeModal(nombre, overlay) {
 // ============================================================
 
 function cargarProyecto() {
-    fetch(`/ProyectoM/api/proyecto_detalle.php?id=${proyectoId}`, {
+    fetch(`/ProyectoMinecraft/api/proyecto_detalle.php?id=${proyectoId}`, {
         method: 'GET',
         credentials: 'same-origin'
     })
@@ -374,7 +374,7 @@ function cargarProyecto() {
 }
 
 function cargarInventarioUsuario() {
-    fetch('/ProyectoM/api/inventario_usuario.php', {
+    fetch('/ProyectoMinecraft/api/inventario_usuario.php', {
         method: 'GET',
         credentials: 'same-origin'
     })
@@ -401,7 +401,7 @@ function cargarInventarioUsuario() {
 }
 
 function cargarCatalogo() {
-    fetch('/ProyectoM/api/items.php', {
+    fetch('/ProyectoMinecraft/api/items.php', {
         method: 'GET',
         credentials: 'same-origin'
     })
@@ -585,7 +585,7 @@ function toggleItemProyecto(itemId, itemNombre) {
             cantidad: 1
         });
 
-        fetch('/ProyectoM/api/agregar_item.php', {
+        fetch('/ProyectoMinecraft/api/agregar_item.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params
@@ -654,7 +654,7 @@ function actualizarCantidadEnServidor(itemId, nuevaCantidad) {
         cantidad: nuevaCantidad
     });
 
-    fetch('/ProyectoM/api/actualizar_item.php', {
+    fetch('/ProyectoMinecraft/api/actualizar_item.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
@@ -691,7 +691,7 @@ function quitarItem(itemId) {
         item_id: itemId
     });
 
-    fetch('/ProyectoM/api/quitar_item.php', {
+    fetch('/ProyectoMinecraft/api/quitar_item.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
@@ -728,7 +728,7 @@ function limpiarLista() {
             proyecto_id: proyectoId,
             item_id: item.id_item
         });
-        return fetch('/ProyectoM/api/quitar_item.php', {
+        return fetch('/ProyectoMinecraft/api/quitar_item.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: params
@@ -891,7 +891,7 @@ function agregarAlInventario(itemId, cantidad) {
         cantidad: cantidad
     });
 
-    fetch('/ProyectoM/api/inventario_agregar.php', {
+    fetch('/ProyectoMinecraft/api/inventario_agregar.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -928,7 +928,7 @@ function quitarDelInventario(itemId) {
         item_id: itemId
     });
 
-    fetch('/ProyectoM/api/inventario_quitar.php', {
+    fetch('/ProyectoMinecraft/api/inventario_quitar.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -955,7 +955,7 @@ function limpiarInventario() {
     if (Object.keys(inventarioUsuario).length === 0) return;
     if (!confirm('¿Eliminar todos los materiales de tu inventario?')) return;
 
-    fetch('/ProyectoM/api/inventario_limpiar.php', {
+    fetch('/ProyectoMinecraft/api/inventario_limpiar.php', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
@@ -995,7 +995,7 @@ function calcularProyecto() {
     console.log('📊 Calculando proyecto ID:', proyectoId);
     console.log('📦 Items en proyecto:', itemsProyecto);
 
-    fetch(`/ProyectoM/api/calcular_proyecto.php?id=${proyectoId}`, {
+    fetch(`/ProyectoMinecraft/api/calcular_proyecto.php?id=${proyectoId}`, {
         method: 'GET',
         credentials: 'same-origin'
     })
@@ -1324,7 +1324,7 @@ function renombrarProyecto(nuevoNombre) {
         nombre: nuevoNombre.trim()
     });
 
-    fetch('/ProyectoM/api/renombrar_proyecto.php', {
+    fetch('/ProyectoMinecraft/api/renombrar_proyecto.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: params
