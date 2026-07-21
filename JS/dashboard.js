@@ -263,7 +263,6 @@ function cargarEstadisticas() {
 function actualizarEstadisticas(estadisticas) {
     const statProyectos = document.getElementById('statProyectos');
     const statMateriales = document.getElementById('statMateriales');
-    const statHoras = document.getElementById('statHoras');
 
     if (statProyectos) {
         // Animación de conteo
@@ -271,9 +270,6 @@ function actualizarEstadisticas(estadisticas) {
     }
     if (statMateriales) {
         animarNumero(statMateriales, statMateriales.textContent.replace(/,/g, ''), estadisticas.total_materiales || 0);
-    }
-    if (statHoras) {
-        animarNumero(statHoras, statHoras.textContent, estadisticas.total_hornos || 0);
     }
 }
 
