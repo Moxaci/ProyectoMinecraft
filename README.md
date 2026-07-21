@@ -28,5 +28,5 @@ Este proyecto cuenta con una arquitectura web ágil y eficiente:
 * **Calcular:** El sistema analiza tus necesidades, descuenta tu inventario y te entrega una lista de materiales exacta y estructurada.
 
 ---
-**Desarrollado para el Curso Especial de Titulación 2025 — CECyTE EM Plantel Nicolás Romero.**  
+**Desarrollado para el Curso Especial de Titulación 2026 — CECyTE EM Plantel Nicolás Romero.**  
 **Autor:** Martinez Escobar Antony Kevin
