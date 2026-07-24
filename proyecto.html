@@ -7,17 +7,23 @@
   <link rel="icon" type="image/png" href="img/Logo.png">
   <link rel="stylesheet" href="CSS/base.css">
   <link rel="stylesheet" href="CSS/workspace.css">
+<base target="_blank">
 </head>
 <body>
 
   <div class="app-shell" style="display: flex; flex-direction: column; min-height: 100vh;">
 
     <div style="display: flex; flex: 1; position: relative;">
-      
+
       <!-- ========== SIDEBAR ========== -->
       <aside class="sidebar" id="sidebar" style="width: 240px; background: var(--bg-card); border-right: 1px solid var(--border-strong); display: flex; flex-direction: column; transition: width 0.3s;">
-        <div style="padding: 16px; border-top: 1px solid var(--border-strong);">
-          <a href="dashboard.html" style="font-size: var(--fs-body); color: var(--text-muted);">← Mis proyectos</a>
+        <!-- Sección de proyectos (se llena dinámicamente desde JS) -->
+
+        <!-- Enlace de regreso al dashboard -->
+        <div style="padding: 16px; border-top: 1px solid var(--border-strong); margin-top: auto;">
+          <a href="dashboard.html" style="font-size: var(--fs-body); color: var(--text-muted); display: flex; align-items: center; gap: 8px;">
+            <span>←</span> Mis proyectos
+          </a>
         </div>
       </aside>
 
@@ -26,11 +32,11 @@
 
         <!-- ===== HEADER ===== -->
         <header style="height: 60px; background: var(--bg-card); border-bottom: 1px solid var(--border-strong); display: flex; align-items: center; justify-content: space-between; padding: 0 24px;">
-          
+
           <!-- Izquierda: toggle + título -->
           <div class="flex items-center gap-sm">
             <button class="btn btn-secondary btn-sm" id="toggleSidebar" aria-label="Menú">☰</button>
-            
+
             <div class="flex items-center" style="gap: 8px; margin-left: 12px;">
               <div style="width: 16px; height: 16px; background: var(--mc-stone); border-radius: 2px;"></div>
               <input
@@ -46,7 +52,7 @@
           <!-- Derecha: botones + perfil -->
           <div class="flex items-center gap-sm">
             <button class="btn btn-secondary btn-sm" id="togglePanel">Lista ◀</button>
-            
+
             <!-- Perfil con avatar dinámico -->
             <div class="dropdown" id="profileDropdown" style="position: relative;">
               <button class="btn btn-secondary btn-sm" id="avatarBtn" style="border-radius: 50%; padding: 0; width: 32px; height: 32px; font-weight: bold; font-size: 12px; display: flex; align-items: center; justify-content: center; background: #47D7E5; color: #1a1a2e; border: none; cursor: pointer;">
@@ -141,7 +147,7 @@
     function initTheme() {
       const savedTheme = localStorage.getItem('craftlog_theme') || 'normal';
       document.body.classList.remove('mc-classic-theme', 'colorblind-mode');
-      
+
       const titleInput = document.getElementById('projectTitle');
 
       if (savedTheme === 'mc') {
@@ -189,12 +195,6 @@
       if (dd && !dd.contains(e.target)) {
         document.getElementById('dropdownMenu').style.display = 'none';
       }
-    });
-
-    // ── BOTÓN NUEVO PROYECTO ──
-    document.getElementById('btnNuevoProyecto').addEventListener('click', function(e) {
-      e.preventDefault();
-      window.location.href = 'proyecto.html';
     });
   </script>
 
