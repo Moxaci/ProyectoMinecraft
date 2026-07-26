@@ -7,7 +7,6 @@
   <link rel="icon" type="image/png" href="img/Logo.png">
   <link rel="stylesheet" href="CSS/base.css">
   <link rel="stylesheet" href="CSS/workspace.css">
-<base target="_blank">
 </head>
 <body>
 
@@ -76,8 +75,9 @@
 
           <!-- CATÁLOGO DE BLOQUES -->
           <section class="catalog-panel">
-            <div class="catalog-header">
-              <input type="search" class="search-bar" placeholder="🔍 Buscar bloque o material..." id="searchBlocks">
+            <div class="catalog-header" style="display: flex; gap: 8px;">
+              <input type="search" class="search-bar" placeholder="🔍 Buscar bloque o material..." id="searchBlocks" style="flex: 1;">
+              <button class="btn btn-primary" id="btnCrearItem" title="Añadir nuevo item a la base de datos" style="padding: 0 14px; font-size: 18px; font-weight: bold;">+</button>
             </div>
 
             <!-- INVENTARIO DEL USUARIO -->
@@ -138,6 +138,130 @@
 
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ========== MODAL DE CREACIÓN DE ITEMS (DOS PASOS) ========== -->
+  <div id="modalNuevoItem" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; animation: fadeIn 0.2s ease;">
+    <div class="modal-content" style="background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: 8px; padding: 32px; width: 500px; max-width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.6); animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+      
+      <!-- PASO 1: Datos del Ítem -->
+      <div id="paso1Item">
+        <div style="margin-bottom: 20px;">
+          <div style="font-family: var(--font-pixel); font-size: 8px; color: var(--mc-diamond); letter-spacing: 1px; margin-bottom: 8px;">
+            ➕ AÑADIR NUEVO ITEM
+          </div>
+          <div style="font-size: 18px; font-weight: 600; color: var(--text);">Registrar bloque o material</div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; gap: 12px;">
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">ID (Inglés, ej: oak_log)*</label>
+              <input type="text" id="addIdItem" style="width: 100%; padding: 8px 12px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none;">
+            </div>
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Nombre (Español)*</label>
+              <input type="text" id="addNombreItem" style="width: 100%; padding: 8px 12px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none;">
+            </div>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">URL Imagen (Solo minecraft.wiki)*</label>
+            <input type="url" id="addImagenItem" placeholder="https://minecraft.wiki/images/..." style="width: 100%; padding: 8px 12px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none;">
+            <small id="errorImagen" style="color: #ff5555; display: none; font-size: 12px;">⚠️ La URL debe contener 'minecraft.wiki'</small>
+          </div>
+
+          <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Stack Máximo*</label>
+              <select id="addStackMax" style="width: 100%; padding: 8px 12px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none;">
+                <option value="64">64</option>
+                <option value="16">16</option>
+                <option value="1">1</option>
+              </select>
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="addEsBase" checked style="width: 20px; height: 20px;">
+              <label for="addEsBase" style="margin: 0; cursor: pointer; font-size: 13px;">¿Es material base?</label>
+            </div>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Descripción / Obtención</label>
+            <textarea id="addDescItem" rows="2" style="width: 100%; padding: 8px 12px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none; resize: vertical;"></textarea>
+          </div>
+
+          <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Herramienta (Opcional)</label>
+              <select id="addTipoHerr" style="width: 100%; padding: 8px 12px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none;">
+                <option value="">Ninguna / Mano</option>
+                <option value="pickaxe">Pico</option>
+                <option value="axe">Hacha</option>
+                <option value="shovel">Pala</option>
+                <option value="hoe">Azada</option>
+              </select>
+            </div>
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Nivel (Opcional)</label>
+              <select id="addNivelHerr" style="width: 100%; padding: 8px 12px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none;">
+                <option value="">Ninguno</option>
+                <option value="wood">Madera</option>
+                <option value="stone">Piedra</option>
+                <option value="iron">Hierro</option>
+                <option value="diamond">Diamante</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="cerrarModalItem()">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnContinuarItem" onclick="procesarPaso1()">Guardar Ítem</button>
+        </div>
+      </div>
+
+      <!-- PASO 2: Receta (Solo si NO es base) -->
+      <div id="paso2Receta" style="display: none;">
+        <div style="margin-bottom: 20px;">
+          <div style="font-family: var(--font-pixel); font-size: 8px; color: var(--mc-gold); letter-spacing: 1px; margin-bottom: 8px;">
+            🛠️ CREAR RECETA
+          </div>
+          <div style="font-size: 18px; font-weight: 600; color: var(--text);">Receta para: <span id="tituloReceta" style="color: var(--mc-diamond);"></span></div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Cantidad resultante*</label>
+              <input type="number" id="addCantidadResultado" value="1" min="1" style="width: 100%; padding: 8px 12px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none;">
+            </div>
+            <div style="flex: 1;">
+              <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Forma de crafteo</label>
+              <select id="addFormaReceta" style="width: 100%; padding: 8px 12px; background: var(--bg); border: 2px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none;">
+                <option value="shapeless">Sin forma (Shapeless)</option>
+                <option value="shaped">Con forma (Shaped)</option>
+                <option value="smelting">Horno (Smelting)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label style="display: block; font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;">Ingredientes requeridos*</label>
+            <div id="listaIngredientes" style="background: var(--bg); padding: 10px; border-radius: 4px; margin-bottom: 10px; min-height: 60px; border: 1px dashed var(--border-strong);">
+              <!-- Los ingredientes se agregan aquí dinámicamente -->
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="agregarFilaIngrediente()">+ Añadir Ingrediente</button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" onclick="volverPaso1()">◀ Volver</button>
+          <button type="button" class="btn btn-primary" onclick="guardarItemCompleto()">✅ Finalizar y Guardar</button>
+        </div>
+      </div>
+
     </div>
   </div>
 

@@ -1,7 +1,7 @@
 /**
  * CraftLog - Módulo de Proyecto
  * Maneja la carga, edición, inventario y cálculo de proyectos
- * VERSIÓN COMPLETA CON SIDEBAR DE PROYECTOS Y GESTIÓN DE RESIDUOS
+ * VERSIÓN COMPLETA CON SIDEBAR DE PROYECTOS, GESTIÓN DE RESIDUOS Y CREACIÓN DE ITEMS (DOS PASOS)
  */
 
 let proyectoId = null;
@@ -9,6 +9,9 @@ let itemsDisponibles = [];
 let itemsProyecto = [];
 let inventarioUsuario = {};
 let usuarioActual = null;
+
+// Variables para el modal de creación de items
+let datosItemPaso1 = {};
 
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Cargar información del usuario
@@ -71,6 +74,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 10. Cargar catálogo de items
     cargarCatalogo();
+
+    // 11. Configurar botón para crear nuevo item en la BD
+    const btnCrearItem = document.getElementById('btnCrearItem');
+    if (btnCrearItem) {
+        btnCrearItem.addEventListener('click', function() {
+            mostrarModalCrearItem();
+        });
+    }
+
+    // 12. Configurar el checkbox de "es base" para cambiar el texto del botón
+    const checkboxEsBase = document.getElementById('addEsBase');
+    if (checkboxEsBase) {
+        checkboxEsBase.addEventListener('change', function() {
+            const btnContinuar = document.getElementById('btnContinuarItem');
+            if (this.checked) {
+                btnContinuar.textContent = 'Guardar Ítem';
+            } else {
+                btnContinuar.textContent = 'Siguiente (Añadir Receta) ➔';
+            }
+        });
+    }
 });
 
 // ============================================================
@@ -1350,15 +1374,15 @@ function mostrarResultado(resultado) {
     });
 
     // ============================================================
-    // NUEVO: RENDERIZAR RESIDUOS (SOBRANTES DE RECETAS)
+    // RENDERIZAR RESIDUOS (SOBRANTES DE RECETAS)
     // ============================================================
     let residuosHTML = '';
     if (resultado.residuos && resultado.residuos.length > 0) {
         residuosHTML = `
         <div style="margin-top: 16px; border-top: 2px dashed var(--border); padding-top: 16px;">
-        <div style="font-family: var(--font-pixel); font-size: 8px; color: var(--mc-diamond); letter-spacing: 1px; margin-bottom: 12px;">
-        ♻️ MATERIALES SOBRANTES (RESIDUOS)
-        </div>
+            <div style="font-family: var(--font-pixel); font-size: 8px; color: var(--mc-diamond); letter-spacing: 1px; margin-bottom: 12px;">
+                ♻️ MATERIALES SOBRANTES (RESIDUOS)
+            </div>
         `;
         resultado.residuos.forEach(r => {
             const itemInfo = itemsDisponibles.find(i => i.id_item === r.id_item);
@@ -1368,18 +1392,18 @@ function mostrarResultado(resultado) {
 
             residuosHTML += `
             <div id="${idFila}" style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div style="display: flex; align-items: center; gap: 8px;">
-            <div style="width: 24px; height: 24px; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); flex-shrink:0;">
-            ${imagenUrl ?
-                `<img src="${imagenUrl}" alt="${r.nombre}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` :
-                `<div style="width: 100%; height: 100%; background: ${color};"></div>`
-            }
-            </div>
-            <span style="font-size: 13px; color: var(--text-secondary);">${r.nombre} <span style="color: var(--text); font-weight: bold;">x${r.cantidad}</span></span>
-            </div>
-            <button onclick="guardarSobrante('${r.id_item}', ${r.cantidad}, '${idFila}')" style="background: rgba(60, 200, 200, 0.1); border: 1px solid var(--mc-diamond); color: var(--mc-diamond); padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; font-weight: bold; transition: 0.2s;">
-            + Inventario
-            </button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 24px; height: 24px; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); flex-shrink:0;">
+                        ${imagenUrl ? 
+                            `<img src="${imagenUrl}" alt="${r.nombre}" style="width: 100%; height: 100%; object-fit: cover; image-rendering: pixelated;">` : 
+                            `<div style="width: 100%; height: 100%; background: ${color};"></div>`
+                        }
+                    </div>
+                    <span style="font-size: 13px; color: var(--text-secondary);">${r.nombre} <span style="color: var(--text); font-weight: bold;">x${r.cantidad}</span></span>
+                </div>
+                <button onclick="guardarSobrante('${r.id_item}', ${r.cantidad}, '${idFila}')" style="background: rgba(60, 200, 200, 0.1); border: 1px solid var(--mc-diamond); color: var(--mc-diamond); padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; font-weight: bold; transition: 0.2s;">
+                    + Inventario
+                </button>
             </div>
             `;
         });
@@ -1441,13 +1465,232 @@ function mostrarResultado(resultado) {
  */
 window.guardarSobrante = function(itemId, cantidad, rowId) {
     agregarAlInventario(itemId, cantidad);
-
+    
     const fila = document.getElementById(rowId);
     if (fila) {
         fila.innerHTML = `<span style="color: var(--mc-diamond); font-size: 12px; margin-left: auto; font-weight: bold;">✅ Guardado en inventario</span>`;
         setTimeout(() => fila.remove(), 1500);
     }
 };
+
+// ============================================================
+// CREACIÓN DE NUEVOS ITEMS (DOS PASOS)
+// ============================================================
+
+/**
+ * Muestra el modal de creación de items (Paso 1)
+ */
+function mostrarModalCrearItem() {
+    const modal = document.getElementById('modalNuevoItem');
+    if (!modal) return;
+
+    // Resetear el modal
+    document.getElementById('paso1Item').style.display = 'block';
+    document.getElementById('paso2Receta').style.display = 'none';
+    
+    // Limpiar campos
+    document.getElementById('addIdItem').value = '';
+    document.getElementById('addNombreItem').value = '';
+    document.getElementById('addImagenItem').value = '';
+    document.getElementById('addDescItem').value = '';
+    document.getElementById('addTipoHerr').value = '';
+    document.getElementById('addNivelHerr').value = '';
+    document.getElementById('addStackMax').value = '64';
+    document.getElementById('addEsBase').checked = true;
+    document.getElementById('errorImagen').style.display = 'none';
+    document.getElementById('addImagenItem').style.borderColor = '';
+    
+    // Limpiar lista de ingredientes
+    document.getElementById('listaIngredientes').innerHTML = '';
+    
+    // Resetear botón
+    const btnContinuar = document.getElementById('btnContinuarItem');
+    btnContinuar.textContent = 'Guardar Ítem';
+
+    // Mostrar modal
+    modal.style.display = 'flex';
+}
+
+/**
+ * Cierra el modal de creación de items
+ */
+function cerrarModalItem() {
+    const modal = document.getElementById('modalNuevoItem');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+/**
+ * Procesa el Paso 1: Valida los datos y decide si ir al Paso 2 o guardar directamente
+ */
+function procesarPaso1() {
+    const urlImagen = document.getElementById('addImagenItem').value;
+    const idItem = document.getElementById('addIdItem').value.trim();
+    const nombre = document.getElementById('addNombreItem').value.trim();
+    
+    // Validar campos obligatorios
+    if (!idItem || !nombre || !urlImagen) {
+        mostrarFeedback('❌ El ID, Nombre y URL de imagen son obligatorios', 'error');
+        return;
+    }
+
+    // Validar que la URL sea de minecraft.wiki
+    if (!urlImagen.includes('minecraft.wiki')) {
+        document.getElementById('errorImagen').style.display = 'block';
+        document.getElementById('addImagenItem').style.borderColor = '#ff5555';
+        mostrarFeedback('❌ La URL debe contener "minecraft.wiki"', 'error');
+        return;
+    } else {
+        document.getElementById('errorImagen').style.display = 'none';
+        document.getElementById('addImagenItem').style.borderColor = '';
+    }
+
+    // Guardar datos del Paso 1 en una variable global
+    datosItemPaso1 = {
+        id_item: idItem,
+        nombre: nombre,
+        descripcion: document.getElementById('addDescItem').value.trim(),
+        imagen: urlImagen,
+        stack_max: document.getElementById('addStackMax').value,
+        es_base: document.getElementById('addEsBase').checked ? 1 : 0,
+        tipo_herramienta: document.getElementById('addTipoHerr').value || null,
+        nivel_herramienta: document.getElementById('addNivelHerr').value || null
+    };
+
+    const esBase = document.getElementById('addEsBase').checked;
+
+    if (esBase) {
+        // ES BASE: Guardar directamente
+        guardarItemCompleto();
+    } else {
+        // NO ES BASE: Ir al Paso 2 (Receta)
+        document.getElementById('tituloReceta').textContent = nombre;
+        document.getElementById('paso1Item').style.display = 'none';
+        document.getElementById('paso2Receta').style.display = 'block';
+        
+        // Agregar al menos una fila de ingrediente por defecto si no hay
+        const lista = document.getElementById('listaIngredientes');
+        if (lista.children.length === 0) {
+            agregarFilaIngrediente();
+        }
+    }
+}
+
+/**
+ * Vuelve al Paso 1 desde el Paso 2
+ */
+function volverPaso1() {
+    document.getElementById('paso2Receta').style.display = 'none';
+    document.getElementById('paso1Item').style.display = 'block';
+}
+
+/**
+ * Agrega una fila de ingrediente en el Paso 2
+ */
+function agregarFilaIngrediente() {
+    const lista = document.getElementById('listaIngredientes');
+    const div = document.createElement('div');
+    div.style.display = 'flex';
+    div.style.gap = '10px';
+    div.style.marginBottom = '8px';
+    div.style.alignItems = 'center';
+    
+    div.innerHTML = `
+        <input type="text" class="ingrediente-id" placeholder="ID del ingrediente (ej: oak_log)" style="flex: 2; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none; font-size: 13px;" required>
+        <input type="number" class="ingrediente-cant" value="1" min="1" style="flex: 1; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border-strong); border-radius: 4px; color: var(--text); outline: none; font-size: 13px;" required>
+        <button type="button" class="btn btn-ghost" style="color: #ff5555; padding: 4px 8px; font-size: 18px; cursor: pointer;" onclick="this.parentElement.remove()">✕</button>
+    `;
+    lista.appendChild(div);
+}
+
+/**
+ * Guarda el item completo (Paso 1 + Receta si aplica)
+ */
+function guardarItemCompleto() {
+    const datos = { ...datosItemPaso1 };
+
+    // Si NO es base, recopilar datos de la receta
+    if (datos.es_base === 0) {
+        const cantidadResultado = document.getElementById('addCantidadResultado').value;
+        const formaReceta = document.getElementById('addFormaReceta').value;
+
+        // Validar que haya al menos un ingrediente
+        const filas = document.querySelectorAll('#listaIngredientes .ingrediente-id');
+        if (filas.length === 0) {
+            mostrarFeedback('❌ Debes agregar al menos un ingrediente', 'error');
+            return;
+        }
+
+        // Recopilar ingredientes
+        const ingredientes = [];
+        let ingredientesValidos = true;
+        document.querySelectorAll('#listaIngredientes > div').forEach(fila => {
+            const idIngred = fila.querySelector('.ingrediente-id').value.trim();
+            const cantIngred = fila.querySelector('.ingrediente-cant').value;
+            if (!idIngred) {
+                ingredientesValidos = false;
+                mostrarFeedback('❌ Todos los ingredientes deben tener un ID', 'error');
+                return;
+            }
+            ingredientes.push({
+                id_item_ingred: idIngred,
+                cantidad: parseInt(cantIngred) || 1
+            });
+        });
+
+        if (!ingredientesValidos) return;
+
+        datos.receta = {
+            cantidad_resultado: parseInt(cantidadResultado) || 1,
+            forma: formaReceta,
+            ingredientes: ingredientes
+        };
+    }
+
+    // Enviar al servidor
+    const btn = document.querySelector('#btnContinuarItem') || document.querySelector('#paso2Receta .btn-primary');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ Guardando...';
+    }
+
+    fetch('/ProyectoMinecraft/api/crear_item.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(datos)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = datos.es_base === 1 ? 'Guardar Ítem' : '✅ Finalizar y Guardar';
+        }
+
+        if (data.success) {
+            mostrarFeedback('✅ ¡Item registrado con éxito!', 'success');
+            cerrarModalItem();
+            cargarCatalogo(); // Refrescar el catálogo
+        } else {
+            mostrarFeedback('❌ ' + (data.error || 'Error al guardar el item'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = datos.es_base === 1 ? 'Guardar Ítem' : '✅ Finalizar y Guardar';
+        }
+        mostrarFeedback('❌ Error de conexión: ' + error.message, 'error');
+    });
+}
 
 // ============================================================
 // RENOMBRAR PROYECTO

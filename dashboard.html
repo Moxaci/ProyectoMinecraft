@@ -50,47 +50,59 @@
 
     <div class="main-content">
 
-      <header class="content-header">
-        <div class="flex items-center gap-sm">
-          <button class="toggle-btn" id="toggleSidebar" aria-label="Mostrar/ocultar menú">☰</button>
-          <a href="index.html" class="navbar-brand" style="text-decoration:none;">
-            <div>
-              <div class="brand-text" style="font-size:9px;">CRAFTLOG</div>
-            </div>
-          </a>
+      <!-- ===== HEADER (Estilo Proyecto) ===== -->
+      <header style="height: 60px; background: var(--bg-card); display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid var(--border);">
+  
+         <!-- Izquierda: Botón de menú y título -->
+        <div style="display: flex; align-items: center; gap: 15px;">
+      |   <button id="toggleSidebar" class="btn btn-secondary" style="padding: 6px 12px; font-size: 16px; cursor: pointer; border-radius: 4px;">
+           ☰
+          </button>
+          <h2 style="margin: 0; font-family: var(--font-pixel, sans-serif); font-size: 20px; color: var(--text);">
+              Dashboard
+          </h2>
+  </div>
+
+  <!-- Derecha: Perfil desplegable -->
+  <div style="display: flex; align-items: center; gap: 15px;">
+    <div class="dropdown" id="profileDropdown" style="position: relative;">
+      
+      <!-- Se cambió el ID a profileBtn para que dashboard.js lo reconozca -->
+      <button id="profileBtn" onclick="toggleDropdown()" class="btn btn-secondary" style="border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; padding: 0;">
+        AK
+      </button>
+      
+      <!-- Menú desplegable -->
+      <div class="dropdown-menu" id="dropdownMenu" style="display: none; position: absolute; right: 0; top: 120%; background: var(--bg-card); border: 1px solid var(--border-strong); border-radius: 6px; width: 220px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); z-index: 100;">
+        
+        <!-- Información del Usuario -->
+        <div style="padding: 10px 16px; border-bottom: 1px solid var(--border);">
+          <div style="font-size: 13px; font-weight: 500; color: var(--text);" id="dropdownUserName">Antony Kevin</div>
+          <div style="font-size: 11px; color: gray;" id="dropdownUserEmail">correo@ejemplo.com</div>
         </div>
 
-        <span class="content-header-title">Vista general</span>
-
-        <div class="flex items-center gap-sm">
-          <input type="search" class="search-bar" placeholder="Buscar proyecto..." style="width:180px; height:32px; font-size:12px;" id="searchProjects">
-
-          <div class="dropdown" id="profileDropdown">
-            <button class="avatar" id="profileBtn" aria-label="Menú de perfil" onclick="toggleDropdown()">AK</button>
-            <div class="dropdown-menu" id="dropdownMenu" role="menu">
-              <div style="padding:10px 16px; border-bottom:1px solid var(--border);">
-                <div style="font-size:13px; font-weight:500;">Antony Kevin</div>
-              </div>
-            
-              
-              <div class="dropdown-sep"></div>
-              
-              <div style="padding:6px 16px;">
-                <div class="text-xs text-muted" style="margin-bottom:6px; font-family:var(--font-pixel); font-size:7px; letter-spacing:1px;">ACCESIBILIDAD</div>
-                <div class="flex flex-col gap-xs">
-                  <div class="flex gap-sm">
-                    <button id="theme-normal" class="btn btn-secondary btn-xs" style="flex:1" onclick="setTheme('normal')">Estándar</button>
-                    <button id="theme-mc" class="btn btn-secondary btn-xs" style="flex:1" onclick="setTheme('mc')">Minecraft</button>
-                  </div>
-                  <button id="theme-blind" class="btn btn-secondary btn-xs" style="width:100%; margin-top:4px;" onclick="setTheme('colorblind')">👁️ Modo Daltónico</button>
-                </div>
-              </div>
-              
-              <div class="dropdown-sep"></div>
-              <a href="login.html" class="dropdown-item danger">Cerrar sesión</a>
-            </div>
+        <!-- Botones de Tema Visual -->
+        <div style="padding: 10px 16px; border-bottom: 1px solid var(--border);">
+          <div style="font-size: 10px; color: gray; margin-bottom: 8px; letter-spacing: 0.5px;">TEMA VISUAL</div>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <button id="theme-normal" class="btn" onclick="setTheme('normal')" style="text-align: left; padding: 6px 10px; border-radius: 4px; background: transparent; border: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 12px;">
+              Normal
+            </button>
+            <button id="theme-mc" class="btn" onclick="setTheme('mc')" style="text-align: left; padding: 6px 10px; border-radius: 4px; background: transparent; border: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 12px;">
+              Minecraft Clásico
+            </button>
+            <button id="theme-blind" class="btn" onclick="setTheme('colorblind')" style="text-align: left; padding: 6px 10px; border-radius: 4px; background: transparent; border: 1px solid var(--border); cursor: pointer; color: var(--text); font-size: 12px;">
+              Modo Daltónico
+            </button>
           </div>
         </div>
+
+        <!-- Cerrar Sesión -->
+        <a href="login.html" class="dropdown-item danger" style="display: block; padding: 12px 16px; color: #ff5555; text-decoration: none; font-size: 13px;">
+          Cerrar sesión
+        </a>
+      </div>
+      
       </header>
 
       <div class="content-body">
@@ -142,12 +154,20 @@
 
     // Menú de perfil dropdown
     function toggleDropdown() {
-        document.getElementById('profileDropdown').classList.toggle('open');
+        const menu = document.getElementById('dropdownMenu');
+        if (menu.style.display === 'none') {
+            menu.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+        }
     }
 
     document.addEventListener('click', (e) => {
         const dd = document.getElementById('profileDropdown');
-        if (dd && !dd.contains(e.target)) dd.classList.remove('open');
+        const menu = document.getElementById('dropdownMenu');
+        if (dd && !dd.contains(e.target) && menu) {
+            menu.style.display = 'none';
+        }
     });
 
     // Lógica de temas globales basados en clases del body
