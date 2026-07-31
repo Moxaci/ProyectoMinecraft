@@ -163,7 +163,7 @@ function actualizarSidebarRecientes(proyectos) {
     const recientes = proyectos.slice(0, 5);
     recientes.forEach(proyecto => {
         const item = document.createElement('a');
-        item.href = `proyecto.html?id=${proyecto.id_proyecto}`;
+        item.href = `workspace.html?id=${proyecto.id_proyecto}`;
         item.className = 'history-item';
         item.innerHTML = `
             <div class="history-item-icon" style="background:${obtenerColorProyecto(proyecto.nombre)}"></div>
@@ -218,7 +218,7 @@ function renderizarProyectos(proyectos) {
         const fecha = formatearFecha(proyecto.fecha_creacion);
 
         card.innerHTML = `
-            <div class="project-card-header" onclick="window.location.href='proyecto.html?id=${proyecto.id_proyecto}'">
+            <div class="project-card-header" onclick="window.location.href='workspace.html?id=${proyecto.id_proyecto}'">
                 <div class="pixel-block project-block-icon" style="background:${color}; width:32px; height:32px; border-radius:4px; flex-shrink:0;"></div>
                 <div>
                     <div class="project-card-name">${proyecto.nombre}</div>
